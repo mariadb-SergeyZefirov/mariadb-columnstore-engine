@@ -752,12 +752,6 @@ create_columnstore_select_handler(THD* thd, SELECT_LEX* select_lex)
         return handler;
     }
 
-    // Disable SP support in the select_handler for now.
-    if ((thd->lex)->sphead)
-    {
-        return handler;
-    }
-
     // Flag to indicate if this is a prepared statement
     bool isPS = thd->stmt_arena && thd->stmt_arena->is_stmt_execute();
 
