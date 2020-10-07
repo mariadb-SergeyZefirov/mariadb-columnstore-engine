@@ -7,7 +7,7 @@ PartOf=mcs-controllernode.service
 After=network.target mcs-workernode.service mcs-controllernode.service
 
 [Service]
-Type=simple
+Type=forking
 
 User=mysql
 Group=mysql

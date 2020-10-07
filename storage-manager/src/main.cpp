@@ -35,8 +35,47 @@ using namespace std;
 #include "Synchronizer.h"
 #include "Replicator.h"
 #include "crashtrace.h"
+#include "service.h"
 
 using namespace storagemanager;
+
+
+class Opt
+{
+public:
+  const char *m_progname;
+  bool m_fg;
+  Opt(int argc, char **argv)
+   :m_progname(argv[0]),
+    m_fg(argc >= 2 && string(argv[1]) == "fg")
+  { }
+};
+
+
+class ServiceStorageManager: public Service, public Opt
+{
+protected:
+    void InitChildSignalHandlers();
+
+public:
+    ServiceStorageManager(const Opt &opt)
+     :Service("StorageManager"), Opt(opt)
+    { }
+    void LogErrno() override
+    {
+        SMLogging::get()->log(LOG_ERR, "%s", strerror(errno));
+    }
+    void ParentLogChildMessage(const std::string &str) override
+    {
+        SMLogging::get()->log(LOG_INFO, "%.*s", str);
+    }
+    int Child() override;
+    int Run()
+    {
+        return m_fg ? Child() : RunForking();
+    }
+};
+
 
 bool signalCaught = false;
 
@@ -74,15 +113,9 @@ void coreSM(int sig)
     signalCaught = true;
 }
 
-int main(int argc, char** argv)
+
+void ServiceStorageManager::InitChildSignalHandlers()
 {
-
-    /* Instantiate objects to have them verify config settings before continuing */
-    IOCoordinator* ioc = IOCoordinator::get();
-    Cache* cache = Cache::get();
-    Synchronizer* sync = Synchronizer::get();
-    Replicator* rep = Replicator::get();
-
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
 
@@ -109,14 +142,27 @@ int main(int argc, char** argv)
  
     sa.sa_handler = printKPIs;
     sigaction(SIGUSR2, &sa, NULL);
-    
-    int ret = 0;
+}
 
-    SMLogging* logger = SMLogging::get();
+
+int ServiceStorageManager::Child()
+{
+    InitChildSignalHandlers();
+
+    /* Instantiate objects to have them verify config settings before continuing */
+    IOCoordinator* ioc = IOCoordinator::get();
+    Cache* cache = Cache::get();
+    Synchronizer* sync = Synchronizer::get();
+    Replicator* rep = Replicator::get();
+    SMLogging *logger= SMLogging::get();
+
+    int ret = 0;
 
     logger->log(LOG_NOTICE,"StorageManager started.");
 
     SessionManager* sm = SessionManager::get();
+
+    NotifyServiceStarted();
 
     ret = sm->start();
 
@@ -131,3 +177,8 @@ int main(int argc, char** argv)
     return ret;
 }
 
+
+int main(int argc, char** argv)
+{
+    return ServiceStorageManager(Opt(argc, argv)).Run();
+}

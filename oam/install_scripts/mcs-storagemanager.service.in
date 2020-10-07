@@ -2,7 +2,7 @@
 Description=storagemanager
 
 [Service]
-Type=simple
+Type=forking
 
 User=mysql
 Group=mysql
