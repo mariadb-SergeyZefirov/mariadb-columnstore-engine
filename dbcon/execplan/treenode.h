@@ -159,11 +159,8 @@ typedef IDB_Decimal CNX_Decimal;
  * @brief IDB_Regex struct
  *
  */
-#ifdef POSIX_REGEX
-typedef regex_t IDB_Regex;
-#else
-typedef boost::regex IDB_Regex;
-#endif
+#include <regex-port.h>
+typedef utils::mcs_regex_t IDB_Regex;
 
 typedef IDB_Regex CNX_Regex;
 

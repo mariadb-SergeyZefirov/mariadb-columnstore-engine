@@ -206,12 +206,8 @@ ConstantColumn::ConstantColumn( const ConstantColumn& rhs):
     if (fRegex.get() != NULL)
     {
         fRegex.reset(new CNX_Regex());
-#ifdef POSIX_REGEX
         string str = dataconvert::DataConvert::constructRegexp(fResult.strVal);
-        regcomp(fRegex.get(), str.c_str(), REG_NOSUB | REG_EXTENDED);
-#else
-        *fRegex = dataconvert::DataConvert::constructRegexp(fResult.strVal);
-#endif
+        fRegex->compile(str.c_str());
     }
 }
 
@@ -400,12 +396,8 @@ void ConstantColumn::constructRegex()
 {
     //fRegex = new regex_t();
     fRegex.reset(new CNX_Regex());
-#ifdef POSIX_REGEX
     string str = dataconvert::DataConvert::constructRegexp(fResult.strVal);
-    regcomp(fRegex.get(), str.c_str(), REG_NOSUB | REG_EXTENDED);
-#else
-    *fRegex = dataconvert::DataConvert::constructRegexp(fResult.strVal);
-#endif
+    fRegex->compile(str.c_str());
 }
 
 }
