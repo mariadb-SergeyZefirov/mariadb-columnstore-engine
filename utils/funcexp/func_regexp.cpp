@@ -131,6 +131,10 @@ inline bool getBool(rowgroup::Row& row,
     {
         ConstantColumn* cc = dynamic_cast<ConstantColumn*>(pm[1]->data());
         if (cc) {
+            if (!cc->directRegex())
+	    {
+                cc->constructRegex();
+	    }
             return cc->directRegex()->matchSubstring(expr.c_str());
 	}
     }
