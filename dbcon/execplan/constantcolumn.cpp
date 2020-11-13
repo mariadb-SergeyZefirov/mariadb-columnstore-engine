@@ -397,7 +397,7 @@ void ConstantColumn::constructRegex()
     string str = dataconvert::DataConvert::constructRegexp(fResult.strVal);
     fRegex->compile(str.c_str());
     fDirectRegex.reset(new CNX_Regex());
-    fDirectRegex->compile(fResult.strVal.c_str);
+    fDirectRegex->compile(fResult.strVal.c_str());
 }
 
 }

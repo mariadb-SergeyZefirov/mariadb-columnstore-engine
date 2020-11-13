@@ -131,7 +131,7 @@ inline bool getBool(rowgroup::Row& row,
     {
         ConstantColumn* cc = dynamic_cast<ConstantColumn*>(pm[1]->data());
         if (cc) {
-            return cc->directRegex().matchSubstring(expr.c_str());
+            return cc->directRegex()->matchSubstring(expr.c_str());
 	}
     }
     // XXX Pattern is often constant, and we should prefer plans where
