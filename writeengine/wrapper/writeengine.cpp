@@ -1128,6 +1128,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
             }
 
             //mark the extents to invalid
+            cout << "setting extents marks to invalid values, " << cpinfoList.size() << " cpinfos total." << endl;
             rc = BRMWrapper::getInstance()->setExtentsMaxMin(cpinfoList);
 
             if (rc != NO_ERROR)
