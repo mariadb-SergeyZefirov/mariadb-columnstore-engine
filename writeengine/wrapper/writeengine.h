@@ -745,9 +745,8 @@ private:
     int AddLBIDtoList(const TxnID        txnid,
                       const ColStruct& colStruct,
                       const int          fbo,
-		      const BRM::CPInfo& cpInfo // there is dummy value for you to use
+		            BRM::CPInfo& cpInfo // there is dummy value for you to use
 		      );
-
     // mark extents of the transaction as invalid. erase transaction from txn->lbidsrec map if requested.
     int markTxnExtentsAsInvalid(const TxnID txnid, bool erase = false);
 
