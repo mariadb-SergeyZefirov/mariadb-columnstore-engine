@@ -1685,8 +1685,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                     {
                         RETURN_ON_ERROR(AddLBIDtoList(txnid,
                                                       colStructList[i],
-                                                      curFbo,
-						      dummyCPInfo));
+                                                      curFbo));
                     }
                 }
             }
@@ -2447,8 +2446,7 @@ int WriteEngineWrapper::insertColumnRecsBinary(const TxnID& txnid,
                     {
                         RETURN_ON_ERROR(AddLBIDtoList(txnid,
                                                       colStructList[i],
-                                                      curFbo,
-						      dummyCPInfo));
+                                                      curFbo));
                     }
                 }
                 else
@@ -2469,8 +2467,7 @@ int WriteEngineWrapper::insertColumnRecsBinary(const TxnID& txnid,
                 {
                     RETURN_ON_ERROR(AddLBIDtoList(txnid,
                                                   newColStructList[i],
-                                                  curFbo,
-						  dummyCPInfo));
+                                                  curFbo));
                 }
             }
             else
@@ -3050,8 +3047,7 @@ int WriteEngineWrapper::insertColumnRec_SYS(const TxnID& txnid,
             {
                 RETURN_ON_ERROR(AddLBIDtoList(txnid,
                                               newColStructList[i],
-                                              curFbo,
-					      dummyCPInfo));
+                                              curFbo));
             }
         }
     }
@@ -3712,8 +3708,7 @@ int WriteEngineWrapper::insertColumnRec_Single(const TxnID& txnid,
                 colDataTypes.push_back(colStructList[i].colDataType);
                 RETURN_ON_ERROR(AddLBIDtoList(txnid,
                                               colStructList[i],
-                                              curFbo,
-					      dummyCPInfo));
+                                              curFbo));
             }
         }
     }
@@ -4246,8 +4241,7 @@ int WriteEngineWrapper::updateColumnRec(const TxnID& txnid,
                 {
                     RETURN_ON_ERROR(AddLBIDtoList(txnid,
                                                   colStructList[j],
-                                                  curFbo,
-						  dummyCPInfo));
+                                                  curFbo));
                 }
             }
         }
@@ -4303,8 +4297,7 @@ int WriteEngineWrapper::updateColumnRecs(const TxnID& txnid,
             {
                 RETURN_ON_ERROR(AddLBIDtoList(txnid,
                                               colExtentsStruct[j],
-                                              curFbo,
-					      dummyCPInfo));
+                                              curFbo));
             }
         }
     }
@@ -6090,7 +6083,7 @@ void WriteEngineWrapper::AddDictToList(const TxnID txnid,
 int WriteEngineWrapper::AddLBIDtoList(const TxnID        txnid,
                                       const ColStruct& colStruct,
                                       const int          fbo,
-				      const BRM::CPInfo& cpInfo)
+				            BRM::CPInfo& cpInfo)
 {
     int rtn = 0;
 
