@@ -750,6 +750,9 @@ private:
     // mark extents of the transaction as invalid. erase transaction from txn->lbidsrec map if requested.
     int markTxnExtentsAsInvalid(const TxnID txnid, bool erase = false);
 
+    // mark extents of the transaction as invalid.
+    int markTxnExtentsAsInvalid(const TxnID txnid);
+
     int RemoveTxnFromLBIDMap(const TxnID txnid);
 
     int op(int compressionType)
