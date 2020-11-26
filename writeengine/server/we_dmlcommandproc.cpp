@@ -3887,7 +3887,6 @@ uint8_t WE_DMLCommandProc::processFlushFiles(messageqcpp::ByteStream& bs, std::s
             {
                 SP_TxnLBIDRec_t spTxnLBIDRec = (*mapIter).second;
                 lbidList = spTxnLBIDRec->m_LBIDs;
-
             }
         }
         catch (...) {}
