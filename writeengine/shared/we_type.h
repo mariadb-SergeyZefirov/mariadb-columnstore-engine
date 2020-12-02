@@ -39,6 +39,7 @@
 #include "calpontsystemcatalog.h"
 #include "IDBDataFile.h"
 #include "IDBPolicy.h"
+#include "brmtypes.h"
 
 #undef EXPORT
 #undef DELETE
@@ -289,10 +290,11 @@ struct ColStruct                        /** @brief Column Interface Struct*/
     bool           tokenFlag;           /** @brief column token flag, must be set to true if it is a token column */
     execplan::CalpontSystemCatalog::ColDataType    colDataType;         /** @brief column data type (for interface)*/
     ColType        colType;             /** @brief column type (internal use for write engine)*/
-    uint32_t      fColPartition;       /** @brief Partition for column file */
-    uint16_t      fColSegment;         /** @brief Segment for column file*/
-    uint16_t      fColDbRoot;          /** @brief DBRoot for column file */
+    uint32_t       fColPartition;       /** @brief Partition for column file */
+    uint16_t       fColSegment;         /** @brief Segment for column file*/
+    uint16_t       fColDbRoot;          /** @brief DBRoot for column file */
     int            fCompressionType;    /** @brief Compression tpye for column file */
+    BRM::CPInfo    fSplitMaxMinInfo[2]; /** @brief internal to write engine: min/max ranges for data in one and, possible, second extent. */
     ColStruct() : dataOid(0), colWidth(0),  /** @brief constructor */
         tokenFlag(false), colDataType(execplan::CalpontSystemCatalog::INT), colType(WR_INT),
         fColPartition(0), fColSegment(0), fColDbRoot(0),

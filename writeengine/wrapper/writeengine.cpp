@@ -59,6 +59,8 @@ using namespace execplan;
 using namespace idbdatafile;
 #include "dataconvert.h"
 
+#include "exceptclasses.h" // idbassert(E)
+
 #ifdef _MSC_VER
 #define isnan _isnan
 #endif
@@ -69,7 +71,6 @@ namespace WriteEngine
 {
 StopWatch timer;
 
-static BRM::CPInfo dummyCPInfo;
 
 /**@brief WriteEngineWrapper Constructor
 */
@@ -260,7 +261,7 @@ void WriteEngineWrapper::convertValArray(const size_t totalRow, const CalpontSys
 /*
  * @brief Convert column value to its internal representation
  */
-void WriteEngineWrapper::convertValue(const execplan::CalpontSystemCatalog::ColType& cscColType, ColType colType, void* value, boost::any& data)
+void WriteEngineWrapper::convertValue(const execplan::CalpontSystemCatalog::ColType& cscColType, ColType colType, void* value, const boost::any& data)
 {
     string curStr;
     int size;
@@ -418,6 +419,8 @@ void WriteEngineWrapper::convertValue(const execplan::CalpontSystemCatalog::ColT
  * RETURN:
  *    none
  ***********************************************************/
+// XXX THERE ARE TWO SEPARATE FUNCTIONS THERE!!! XXX
+// XXX ONE IS TO CONVERT FROM boost::any AND OTHER TO CONVERT TO boost::any XXX
 void WriteEngineWrapper::convertValue(const CalpontSystemCatalog::ColType& cscColType, const ColType colType, void* valArray, const size_t pos, boost::any& data, bool fromList)
 {
     string curStr;
@@ -1072,6 +1075,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
             BRM::CPInfoList_t cpinfoList;
             BRM::CPInfo cpInfo;
 
+            idbassert(extents.size() == colStructList.size()); // they must be same, because we are provided with extents for all columns.
             for ( i = 0; i < extents.size(); i++)
             {
                 colOp = m_colOp[op(colStructList[i].fCompressionType)];
@@ -1128,7 +1132,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
             }
 
             //mark the extents to invalid
-            cout << "setting extents marks to invalid values, " << cpinfoList.size() << " cpinfos total." << endl;
+            //cout << "setting extents marks to invalid values, " << cpinfoList.size() << " cpinfos total." << endl;
             rc = BRMWrapper::getInstance()->setExtentsMaxMin(cpinfoList);
 
             if (rc != NO_ERROR)
@@ -4595,7 +4599,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
                         // dmlcommandproc converts strings to boost::any and this converts
                         // into actual type value masked by *void
                         // It is not clear why we need to convert to boost::any b/c we can convert from the original string here
-                        convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray);
+                        convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray, colStructList[i].fSplitMaxMinInfo[0]);
                     }
                     catch (...)
                     {
@@ -4713,7 +4717,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
 
                 try
                 {
-                    convertValArray(totalRow2, cscColTypeList[i], newColStructList[i].colType, newColValueList[i], valArray);
+                    convertValArray(totalRow2, cscColTypeList[i], newColStructList[i].colType, newColValueList[i], valArray, colStructList[i].fSplitMaxMinInfos[1]);
                 }
                 catch (...)
                 {
@@ -4830,7 +4834,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
 
                 try
                 {
-                    convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray);
+                    convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray, colStructList[i].maxMinInfos[0]);
                 }
                 catch (...)
                 {
@@ -6114,7 +6118,18 @@ int WriteEngineWrapper::AddLBIDtoList(const TxnID        txnid,
     if (rtn != 0)
         return -1;
 
-    spTxnLBIDRec->AddLBID(startingLBID, colStruct.colDataType);
+    if (maxMinIndex >= 0 && maxMinIndex < 2)
+    {
+        rtn = BRMWrapper::getInstance()->getExtentCPMaxMin(startingLBID, colStruct.maxMinInfos[maxMinIndex]);
+        if (0 != rtn)
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        spTxnLBIDRec->AddLBID(startingLBID, colStruct.colDataType);
+    }
 
     return rtn;
 }

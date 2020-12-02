@@ -46,6 +46,8 @@
 #include "brmtypes.h"
 #include "we_chunkmanager.h"
 
+#include "mcs_datatype.h"
+
 #define IO_BUFF_SIZE 81920
 
 #if defined(_MSC_VER) && defined(WRITEENGINE_DLLEXPORT)
@@ -72,7 +74,8 @@ class Log;
 // for truly long running transactions.
 struct TxnLBIDRec
 {
-    std::tr1::unordered_set<BRM::LBID_t> m_LBIDSet;
+    std::tr1::unordered_map<BRM::LBID_t, int> m_LBIDSet; // records LBIDs and position of their infos in arrays below.
+    // we keep these two vectors separated but they represent array-of-structures in structure-of-arrays style.
     std::vector<BRM::LBID_t> m_LBIDs;
     std::vector<execplan::CalpontSystemCatalog::ColDataType> m_ColDataTypes;
 
@@ -80,7 +83,8 @@ struct TxnLBIDRec
     ~TxnLBIDRec() {}
     void AddLBID(BRM::LBID_t lbid, const execplan::CalpontSystemCatalog::ColDataType& colDataType)
     {
-        if ( m_LBIDSet.insert(lbid).second)
+        int position = m_LBIDs.size();
+        if ( m_LBIDSet.insert(std::pair<BRM::LBID_t, int>(lbid, position)).second)
         {
             m_LBIDs.push_back(lbid);
 	    m_ColDataTypes.push_back(colDataType);
@@ -165,7 +169,8 @@ public:
                                 const execplan::CalpontSystemCatalog::ColType& cscColType,
                                 const ColType colType,
                                 ColTupleList& curTupleList, void* valArray,
-                                bool bFromList = true) ;
+                                bool bFromList = true,
+				BRM::CPInfo& runningMaxMin) ;
 
     /**
      * @brief Create a column, include object ids for column data and bitmap files
@@ -670,7 +675,7 @@ private:
      * @param value Memory pointer for storing output value. Should be pre-allocated
      * @param data Column data
      */
-    void convertValue(const execplan::CalpontSystemCatalog::ColType& cscColType, const ColType colType, void* value, boost::any& data);
+    void convertValue(const execplan::CalpontSystemCatalog::ColType& cscColType, const ColType colType, void* value, const boost::any& data, BRM::CPInfo& runningMaxMin);
 
     /**
      * @brief Print input value from DDL/DML processors

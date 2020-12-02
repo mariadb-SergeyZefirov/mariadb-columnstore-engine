@@ -825,6 +825,8 @@ public:
     template <typename T>
     EXPORT int getExtentMaxMin(const LBID_t lbid, T& max, T& min, int32_t& seqNum) throw();
 
+    EXPORT int getExtentCPMaxMin(const LBID_t lbid, CPMaxMin& cpMaxMin) throw();
+
     EXPORT int setExtentMaxMin(const LBID_t lbid, const int64_t max, const int64_t min, const int32_t seqNum) DBRM_THROW;
 
     /** @brief Updates the max and min casual partitioning info for the passed extents.

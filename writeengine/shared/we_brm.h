@@ -265,6 +265,11 @@ public:
     int setExtentsMaxMin(const BRM::CPInfoList_t& cpinfoList);
 
     /**
+     * @brief set extents CP min/max info into extent map
+     */
+    int getExtentsCPMaxMin(const BRM::LBID_t lbid, BRM::CPMaxMin_t& cpMaxMin);
+
+    /**
      * @brief Perform bulk rollback of any column extents that logically follow
      * the specified HWM for the given column OID and DBRoot.  The HWM for the
      * last local extent is reset to the specified hwm as well.  Any extents in
