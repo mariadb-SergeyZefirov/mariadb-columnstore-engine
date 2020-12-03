@@ -235,7 +235,7 @@ void WriteEngineWrapper::findSmallestColumn(uint32_t& colId, ColStructList colSt
  *    valArray - output value array
  *    nullArray - output null flag array
  ***********************************************************/
-void WriteEngineWrapper::convertValArray(const size_t totalRow, const CalpontSystemCatalog::ColType& cscColType, const ColType colType, ColTupleList& curTupleList, void* valArray, bool bFromList)
+void WriteEngineWrapper::convertValArray(const size_t totalRow, const CalpontSystemCatalog::ColType& cscColType, const ColType colType, ColTupleList& curTupleList, void* valArray, BRM::CPInfo* runningMaxMin, bool bFromList)
 {
     ColTuple    curTuple;
     ColTupleList::size_type i;
@@ -245,7 +245,7 @@ void WriteEngineWrapper::convertValArray(const size_t totalRow, const CalpontSys
         for (i = 0; i < curTupleList.size(); i++)
         {
             curTuple = curTupleList[i];
-            convertValue(cscColType, colType, valArray, i, curTuple.data);
+            convertValue(cscColType, colType, valArray, i, curTuple.data, runningMaxMin);
         }
     } 
     else
@@ -261,7 +261,7 @@ void WriteEngineWrapper::convertValArray(const size_t totalRow, const CalpontSys
 /*
  * @brief Convert column value to its internal representation
  */
-void WriteEngineWrapper::convertValue(const execplan::CalpontSystemCatalog::ColType& cscColType, ColType colType, void* value, const boost::any& data)
+void WriteEngineWrapper::convertValue(const execplan::CalpontSystemCatalog::ColType& cscColType, ColType colType, void* value, const boost::any& data, BRM::CPInfo* runningMinMax)
 {
     string curStr;
     int size;
@@ -722,7 +722,7 @@ int WriteEngineWrapper::fillColumn(const TxnID& txnid, const OID& dataOid,
     else
     {
         // WIP
-        convertValue(colType, newColType, defVal.get(), defaultVal.data);
+        convertValue(colType, newColType, defVal.get(), defaultVal.data, NULL);
     }
 
     if (rc == NO_ERROR)
@@ -977,6 +977,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
     ColValueList   colOldValueList;
     ColValueList   colNewValueList;
     ColStructList  newColStructList;
+    std::vector<ColSplitMaxMinInfo> maxMins;
     DctnryStructList newDctnryStructList;
     HWM            hwm = 0;
     HWM            oldHwm = 0;
@@ -1013,6 +1014,13 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
     //Convert data type and column width to write engine specific
     for (i = 0; i < colStructList.size(); i++)
         Convertor::convertColType(&colStructList[i]);
+
+    // Allocate running maxMins for updates.
+    for (i = 0; i < colStructList.size(); i++)
+    {
+        BRM::CPInfo temp;
+        maxMins.push_back(temp);
+    }
 
     uint32_t colId = 0;
     // MCOL-1675: find the smallest column width to calculate the RowID from so
@@ -1677,6 +1685,8 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
         {}
         else
         {
+            // XXX THIS MARKS EXTENTS ONLY FOR FIRST PART OF POSSIBLE TWO!!! XXX
+	    // TODO we must go over newColStructList if we have a split.
             for (unsigned i = 0; i < colStructList.size(); i++)
             {
                 colOp = m_colOp[op(colStructList[i].fCompressionType)];
@@ -4485,6 +4495,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
                                        RID* rowIdArray,
                                        const ColStructList& newColStructList,
                                        ColValueList& newColValueList,
+				       ColSplitMaxMinInfoList& colMaxMins,
                                        const int32_t tableOid,
                                        bool useTmpSuffix,
                                        bool versioning)
@@ -4599,7 +4610,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
                         // dmlcommandproc converts strings to boost::any and this converts
                         // into actual type value masked by *void
                         // It is not clear why we need to convert to boost::any b/c we can convert from the original string here
-                        convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray, colStructList[i].fSplitMaxMinInfo[0]);
+                        convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray, &colStructList[i].fSplitMaxMinInfo[0]);
                     }
                     catch (...)
                     {
@@ -4717,7 +4728,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
 
                 try
                 {
-                    convertValArray(totalRow2, cscColTypeList[i], newColStructList[i].colType, newColValueList[i], valArray, colStructList[i].fSplitMaxMinInfos[1]);
+                    convertValArray(totalRow2, cscColTypeList[i], newColStructList[i].colType, newColValueList[i], valArray, &colStructList[i].fSplitMaxMinInfo[1]);
                 }
                 catch (...)
                 {
@@ -4834,7 +4845,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
 
                 try
                 {
-                    convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray, colStructList[i].maxMinInfos[0]);
+                    convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray, &colStructList[i].fSplitMaxMinInfo[0]);
                 }
                 catch (...)
                 {
@@ -6087,7 +6098,7 @@ void WriteEngineWrapper::AddDictToList(const TxnID txnid,
 int WriteEngineWrapper::AddLBIDtoList(const TxnID        txnid,
                                       const ColStruct& colStruct,
                                       const int          fbo,
-				            BRM::CPInfo& cpInfo)
+				            BRM::CPInfo* maxMin)
 {
     int rtn = 0;
 
@@ -6118,9 +6129,9 @@ int WriteEngineWrapper::AddLBIDtoList(const TxnID        txnid,
     if (rtn != 0)
         return -1;
 
-    if (maxMinIndex >= 0 && maxMinIndex < 2)
+    if (maxMin)
     {
-        rtn = BRMWrapper::getInstance()->getExtentCPMaxMin(startingLBID, colStruct.maxMinInfos[maxMinIndex]);
+        rtn = BRMWrapper::getInstance()->getExtentCPMaxMin(startingLBID, maxMin[0]);
         if (0 != rtn)
         {
             return -1;

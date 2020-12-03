@@ -267,7 +267,7 @@ public:
     /**
      * @brief set extents CP min/max info into extent map
      */
-    int getExtentsCPMaxMin(const BRM::LBID_t lbid, BRM::CPMaxMin_t& cpMaxMin);
+    int getExtentCPMaxMin(const BRM::LBID_t lbid, BRM::CPMaxMin& cpMaxMin);
 
     /**
      * @brief Perform bulk rollback of any column extents that logically follow

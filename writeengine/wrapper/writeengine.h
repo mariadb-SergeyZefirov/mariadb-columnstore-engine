@@ -169,8 +169,8 @@ public:
                                 const execplan::CalpontSystemCatalog::ColType& cscColType,
                                 const ColType colType,
                                 ColTupleList& curTupleList, void* valArray,
-                                bool bFromList = true,
-				BRM::CPInfo& runningMaxMin) ;
+				BRM::CPInfo* runningMaxMin = NULL,
+                                bool bFromList = true) ;
 
     /**
      * @brief Create a column, include object ids for column data and bitmap files
@@ -675,7 +675,7 @@ private:
      * @param value Memory pointer for storing output value. Should be pre-allocated
      * @param data Column data
      */
-    void convertValue(const execplan::CalpontSystemCatalog::ColType& cscColType, const ColType colType, void* value, const boost::any& data, BRM::CPInfo& runningMaxMin);
+    void convertValue(const execplan::CalpontSystemCatalog::ColType& cscColType, const ColType colType, void* value, const boost::any& data, BRM::CPInfo* runningMaxMin);
 
     /**
      * @brief Print input value from DDL/DML processors
@@ -709,7 +709,9 @@ private:
                        const ColStructList& colStructList,
                        ColValueList& colValueList,
                        RID* rowIdArray, const ColStructList& newColStructList,
-                       ColValueList& newColValueList, const int32_t tableOid,
+                       ColValueList& newColValueList,
+                       ColSplitMaxMinInfoList& colMaxMins,
+		       const int32_t tableOid,
                        bool useTmpSuffix, bool versioning = true);
 
     int writeColumnRecBinary(const TxnID& txnid, const ColStructList& colStructList,
@@ -750,10 +752,8 @@ private:
     int AddLBIDtoList(const TxnID        txnid,
                       const ColStruct& colStruct,
                       const int          fbo,
-		            BRM::CPInfo& cpInfo // there is dummy value for you to use
-		      );
-    // mark extents of the transaction as invalid. erase transaction from txn->lbidsrec map if requested.
-    int markTxnExtentsAsInvalid(const TxnID txnid, bool erase = false);
+		            BRM::CPInfo* maxMin = NULL
+                      );
 
     // mark extents of the transaction as invalid. erase transaction from txn->lbidsrec map if requested.
     int markTxnExtentsAsInvalid(const TxnID txnid, bool erase = false);

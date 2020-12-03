@@ -283,6 +283,13 @@ typedef struct colTuple_struct          /** @brief Column Tuple definition*/
 
 typedef std::vector<ColTuple>  ColTupleList; /** @brief column value list */
 
+/** @brief Range information for 1 or 2 extents changed by DML operation. */
+struct ColSplitMaxMinInfo {
+    BRM::CPInfo    fSplitMaxMinInfo[2]; /** @brief internal to write engine: min/max ranges for data in one and, possible, second extent. */
+};
+
+typedef std::vector<ColSplitMaxMinInfo> ColSplitMaxMinInfoList;
+
 struct ColStruct                        /** @brief Column Interface Struct*/
 {
     OID            dataOid;             /** @brief column data file object id */
@@ -294,7 +301,6 @@ struct ColStruct                        /** @brief Column Interface Struct*/
     uint16_t       fColSegment;         /** @brief Segment for column file*/
     uint16_t       fColDbRoot;          /** @brief DBRoot for column file */
     int            fCompressionType;    /** @brief Compression tpye for column file */
-    BRM::CPInfo    fSplitMaxMinInfo[2]; /** @brief internal to write engine: min/max ranges for data in one and, possible, second extent. */
     ColStruct() : dataOid(0), colWidth(0),  /** @brief constructor */
         tokenFlag(false), colDataType(execplan::CalpontSystemCatalog::INT), colType(WR_INT),
         fColPartition(0), fColSegment(0), fColDbRoot(0),
