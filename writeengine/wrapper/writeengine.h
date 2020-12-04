@@ -710,9 +710,10 @@ private:
                        ColValueList& colValueList,
                        RID* rowIdArray, const ColStructList& newColStructList,
                        ColValueList& newColValueList,
-                       ColSplitMaxMinInfoList& colMaxMins,
 		       const int32_t tableOid,
-                       bool useTmpSuffix, bool versioning = true);
+                       bool useTmpSuffix, bool versioning = true,
+                       ColSplitMaxMinInfoList* colMaxMins = NULL
+		       );
 
     int writeColumnRecBinary(const TxnID& txnid, const ColStructList& colStructList,
                              std::vector<uint64_t>& colValueList,

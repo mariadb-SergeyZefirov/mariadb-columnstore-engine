@@ -1803,6 +1803,11 @@ void BRMWrapper::writeVBEnd(const VER_t transID, std::vector<LBIDRange>& rangeLi
     blockRsltnMgrPtr->endVBCopy(transID, rangeList);
 }
 
+int BRMWrapper::getExtentCPMaxMin(const BRM::LBID_t lbid, BRM::CPMaxMin& cpMaxMin)
+{
+    idbassert(0);
+}
+
 } //end of namespace
 // vim:ts=4 sw=4:
 

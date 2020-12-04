@@ -1018,7 +1018,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
     // Allocate running maxMins for updates.
     for (i = 0; i < colStructList.size(); i++)
     {
-        BRM::CPInfo temp;
+        ColSplitMaxMinInfo temp;
         maxMins.push_back(temp);
     }
 
@@ -1710,7 +1710,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
         //----------------------------------------------------------------------
         // Write row(s) to database file(s)
         //----------------------------------------------------------------------
-        rc = writeColumnRec(txnid, cscColTypeList, colStructList, colOldValueList, rowIdArray, newColStructList, colNewValueList, tableOid, useTmpSuffix); // @bug 5572 HDFS tmp file
+        rc = writeColumnRec(txnid, cscColTypeList, colStructList, colOldValueList, rowIdArray, newColStructList, colNewValueList, tableOid, useTmpSuffix, false, NULL); // @bug 5572 HDFS tmp file
 
         if (rc == NO_ERROR)
         {
@@ -4495,10 +4495,11 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
                                        RID* rowIdArray,
                                        const ColStructList& newColStructList,
                                        ColValueList& newColValueList,
-				       ColSplitMaxMinInfoList& colMaxMins,
                                        const int32_t tableOid,
                                        bool useTmpSuffix,
-                                       bool versioning)
+                                       bool versioning,
+				       ColSplitMaxMinInfoList* colMaxMins
+				       )
 {
     bool           bExcp;
     int            rc = 0;
@@ -4610,7 +4611,8 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
                         // dmlcommandproc converts strings to boost::any and this converts
                         // into actual type value masked by *void
                         // It is not clear why we need to convert to boost::any b/c we can convert from the original string here
-                        convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray, &colStructList[i].fSplitMaxMinInfo[0]);
+                        convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray,
+                                        colMaxMins ? &(*colMaxMins)[i].fSplitMaxMinInfo[0] : NULL);
                     }
                     catch (...)
                     {
@@ -4728,7 +4730,8 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
 
                 try
                 {
-                    convertValArray(totalRow2, cscColTypeList[i], newColStructList[i].colType, newColValueList[i], valArray, &colStructList[i].fSplitMaxMinInfo[1]);
+                    convertValArray(totalRow2, cscColTypeList[i], newColStructList[i].colType, newColValueList[i], valArray,
+				    colMaxMins ? &(*colMaxMins)[i].fSplitMaxMinInfo[1] : NULL);
                 }
                 catch (...)
                 {
@@ -4845,7 +4848,8 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
 
                 try
                 {
-                    convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray, &colStructList[i].fSplitMaxMinInfo[0]);
+                    convertValArray(totalRow1, cscColTypeList[i], colStructList[i].colType, colValueList[i], valArray,
+				    colMaxMins ? &(*colMaxMins)[i].fSplitMaxMinInfo[0] : NULL);
                 }
                 catch (...)
                 {
@@ -5436,7 +5440,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
 
             try
             {
-                convertValue(cscColTypeList[i], curColStruct.colType, valArray, curTuple.data);
+                convertValue(cscColTypeList[i], curColStruct.colType, valArray, curTuple.data, NULL);
             }
             catch (...)
             {
@@ -6131,11 +6135,19 @@ int WriteEngineWrapper::AddLBIDtoList(const TxnID        txnid,
 
     if (maxMin)
     {
-        rtn = BRMWrapper::getInstance()->getExtentCPMaxMin(startingLBID, maxMin[0]);
+        BRM::CPMaxMin temp;
+        rtn = BRMWrapper::getInstance()->getExtentCPMaxMin(startingLBID, temp);
         if (0 != rtn)
         {
             return -1;
         }
+        maxMin->max = temp.max;
+	maxMin->min = temp.min;
+	maxMin->seqNum = temp.seqNum;
+	maxMin->bigMax = temp.bigMax;
+	maxMin->bigMin = temp.bigMin;
+	maxMin->isBinaryColumn = temp.isBinaryColumn;
+	maxMin->firstLbid = startingLBID;
     }
     else
     {
