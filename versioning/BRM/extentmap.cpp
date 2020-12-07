@@ -1118,7 +1118,7 @@ int ExtentMap::getMaxMin(const LBID_t lbid,
         max = numeric_limits<int64_t>::min();
         min = numeric_limits<int64_t>::max();
     }
-    seqNum *= (-1);
+    seqNum = (-1);
     int entries;
     int i;
     LBID_t lastBlock;
@@ -1165,6 +1165,51 @@ int ExtentMap::getMaxMin(const LBID_t lbid,
     throw logic_error("ExtentMap::getMaxMin(): that lbid isn't allocated");
 //   	return -1;
 }
+
+int ExtentMap::getCPMaxMin(const BRM::LBID_t lbid, BRM::CPMaxMin& cpMaxMin)
+{
+    int entries;
+    int i;
+    LBID_t lastBlock;
+    int isValid = CP_INVALID;
+
+#ifdef BRM_DEBUG
+
+    if (lbid < 0)
+        throw invalid_argument("ExtentMap::getMaxMin(): lbid must be >= 0");
+
+#endif
+
+    grabEMEntryTable(READ);
+    entries = fEMShminfo->allocdSize / sizeof(struct EMEntry);
+
+    for (i = 0; i < entries; i++)
+    {
+        if (fExtentMap[i].range.size != 0)
+        {
+            lastBlock = fExtentMap[i].range.start +
+                        (static_cast<LBID_t>(fExtentMap[i].range.size) * 1024) - 1;
+
+            if (lbid >= fExtentMap[i].range.start && lbid <= lastBlock)
+            {
+                cpMaxMin.bigMax = fExtentMap[i].partition.cprange.bigHiVal;
+                cpMaxMin.bigMin = fExtentMap[i].partition.cprange.bigLoVal;
+                cpMaxMin.max    = fExtentMap[i].partition.cprange.hiVal;
+                cpMaxMin.min    = fExtentMap[i].partition.cprange.loVal;
+                cpMaxMin.seqNum = fExtentMap[i].partition.cprange.sequenceNum;
+
+		isValid = fExtentMap[i].partition.cprange.isValid;
+
+                releaseEMEntryTable(READ);
+                return isValid;
+            }
+        }
+    }
+
+    releaseEMEntryTable(READ);
+    throw logic_error("ExtentMap::getMaxMin(): that lbid isn't allocated");
+}
+
 
 /* Removes a range from the freelist.  Used by load() */
 void ExtentMap::reserveLBIDRange(LBID_t start, uint8_t size)

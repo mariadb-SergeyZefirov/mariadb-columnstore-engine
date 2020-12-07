@@ -491,6 +491,20 @@ int DBRM::getExtentMaxMin(const LBID_t lbid, T& max, T& min, int32_t& seqNum) th
     }
 }
 
+int DBRM::getExtentCPMaxMin(const LBID_t lbid, CPMaxMin& cpMaxMin) throw()
+{
+    try
+    {
+        int ret = em->getCPMaxMin(lbid, cpMaxMin);
+        return ret;
+    }
+    catch (exception& e)
+    {
+        cerr << e.what() << endl;
+        return false;
+    }
+}
+
 int DBRM::setExtentMaxMin(const LBID_t lbid, const int64_t max, const int64_t min, const int32_t seqNum) DBRM_THROW
 {
 #ifdef BRM_INFO

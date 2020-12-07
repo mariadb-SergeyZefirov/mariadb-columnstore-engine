@@ -1805,7 +1805,8 @@ void BRMWrapper::writeVBEnd(const VER_t transID, std::vector<LBIDRange>& rangeLi
 
 int BRMWrapper::getExtentCPMaxMin(const BRM::LBID_t lbid, BRM::CPMaxMin& cpMaxMin)
 {
-    idbassert(0);
+    int rc = blockRsltnMgrPtr->getExtentCPMaxMin(lbid, cpMaxMin);
+    return getRC(rc, ERR_BRM_GET_EXTENTS_CP);
 }
 
 } //end of namespace
