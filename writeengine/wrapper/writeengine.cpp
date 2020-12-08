@@ -1686,22 +1686,29 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
         else
         {
             // XXX THIS MARKS EXTENTS ONLY FOR FIRST PART OF POSSIBLE TWO!!! XXX
-	    // TODO we must go over newColStructList if we have a split.
+	    // TODO we must somehow remember rowids for split extents.
             for (unsigned i = 0; i < colStructList.size(); i++)
             {
-                colOp = m_colOp[op(colStructList[i].fCompressionType)];
-                width = colStructList[i].colWidth;
-                successFlag = colOp->calculateRowId(lastRid, BYTE_PER_BLOCK / width, width, curFbo, curBio);
-
-                if (successFlag)
+                if (rowsLeft < totalRow)
                 {
-                    if (curFbo != lastFbo)
+                    colOp = m_colOp[op(colStructList[i].fCompressionType)];
+                    width = colStructList[i].colWidth;
+                    successFlag = colOp->calculateRowId(lastRid, BYTE_PER_BLOCK / width, width, curFbo, curBio);
+
+                    if (successFlag)
                     {
                         RETURN_ON_ERROR(AddLBIDtoList(txnid,
                                                       colStructList[i],
                                                       curFbo));
+                        if (curFbo != lastFbo)
+                        {
+                            RETURN_ON_ERROR(AddLBIDtoList(txnid,
+                                                          colStructList[i],
+                                                          curFbo));
+                        }
                     }
                 }
+		assert(rowsLeft == 0 && "I have to review logic for rowids for split writes");
             }
         }
 
@@ -1733,7 +1740,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 	}
 	else
         {
-            idbassert(0);
+            rc = setExtentsNewMaxMins(maxMins, rowsLeft > 0);
         }
     }
 
