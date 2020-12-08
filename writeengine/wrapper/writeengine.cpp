@@ -1705,7 +1705,6 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
             }
         }
 
-        markTxnExtentsAsInvalid(txnid);
 
         //----------------------------------------------------------------------
         // Write row(s) to database file(s)
@@ -1728,6 +1727,14 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                     rc = ERR_BLKCACHE_FLUSH_LIST; // translate to WE error
             }
        }
+	if (NO_ERROR != rc)
+        {
+            markTxnExtentsAsInvalid(txnid);
+	}
+	else
+        {
+            idbassert(0);
+        }
     }
 
     return rc;
@@ -6185,6 +6192,25 @@ int WriteEngineWrapper::markTxnExtentsAsInvalid(const TxnID txnid, bool erase)
         {
             m_txnLBIDMap.erase(txnid);   // spTxnLBIDRec is auto-destroyed
         }
+    }
+    return rc;
+}
+
+int WriteEngineWrapper::setExtentsNewMaxMins(const ColSplitMaxMinInfoList& maxMins, bool haveSplit)
+{
+    BRM::CPInfoList_t cpInfoList;
+    size_t i, j;
+    int rc;
+    for (j = 0; j < (haveSplit ? 2 : 1); j++)
+    {
+        for (i = 0; i < maxMins.size(); i++)
+        {
+            CPInfo tmp = maxMins[i].fSplitMaxMinInfo[j];
+	    tmp.seqNum ++;
+            cpInfoList.push_back(tmp);
+        }
+        rc = BRMWrapper::getInstance()->setExtentsMaxMin(cpInfoList);
+	cpInfoList.clear();
     }
     return rc;
 }

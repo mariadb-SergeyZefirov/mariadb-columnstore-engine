@@ -759,6 +759,9 @@ private:
     // mark extents of the transaction as invalid. erase transaction from txn->lbidsrec map if requested.
     int markTxnExtentsAsInvalid(const TxnID txnid, bool erase = false);
 
+    // write LBID's new ranges.
+    int setExtentsNewMaxMins(const ColSplitMaxMinInfoList& maxMins, bool haveSplit);
+
     int RemoveTxnFromLBIDMap(const TxnID txnid);
 
     int op(int compressionType)
