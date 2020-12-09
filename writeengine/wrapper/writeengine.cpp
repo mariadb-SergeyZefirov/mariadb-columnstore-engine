@@ -925,19 +925,18 @@ void WriteEngineWrapper::flushVMCache() const
 
 #if 01
 // XXX temporary for debugging purposes
-static void log_this(const char *message,
-    logging::LOG_TYPE log_type, unsigned sid)
+static void log_this(const char *message)
 {
     // corresponds with dbcon in SubsystemID vector
     // in messagelog.cpp
     unsigned int subSystemId = 24;
-    logging::LoggingID logid( subSystemId, sid, 0);
+    logging::LoggingID logid( subSystemId);
     logging::Message::Args args1;
     logging::Message msg(1);
     args1.add(message);
     msg.format( args1 );
     Logger logger(logid.fSubsysID);
-    logger.logMessage(log_type, msg, logid);
+    logger.logMessage(logging::LOG_TYPE_DEBUG, msg, logid);
 }
 #endif
 
