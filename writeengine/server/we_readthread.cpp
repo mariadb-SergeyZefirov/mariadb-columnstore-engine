@@ -905,6 +905,18 @@ void ReadThreadFactory::CreateReadThread(ThreadPool& Tp, IOSocket& Ios, BRM::DBR
 
     aBs.peek(msgId);
 
+    {
+        logging::LoggingID logid(19, 0, 0);
+        logging::Message::Args args;
+        logging::Message msg(1);
+	ostringstream oss;
+	oss << "Create thread msg id " << msgId;
+        args.add(oss.str());
+        msg.format(args);
+        logging::Logger logger(logid.fSubsysID);
+        logger.logMessage(logging::LOG_TYPE_DEBUG, msg, logid);
+    }
+
     switch (msgId)
     {
         case WE_SVR_DDL_KEEPALIVE:
