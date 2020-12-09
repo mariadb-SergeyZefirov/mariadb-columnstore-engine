@@ -1713,6 +1713,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
         }
 
 
+        markTxnExtentsAsInvalid(txnid);
         //----------------------------------------------------------------------
         // Write row(s) to database file(s)
         //----------------------------------------------------------------------
@@ -1734,14 +1735,17 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                     rc = ERR_BLKCACHE_FLUSH_LIST; // translate to WE error
             }
        }
-	if (NO_ERROR != rc)
+#if 0
+        if (NO_ERROR != rc)
+>>>>>>> 84a5c649... Debugging regression source
         {
             markTxnExtentsAsInvalid(txnid);
-	}
-	else
+        }
+        else
         {
             rc = setExtentsNewMaxMins(maxMins, rowsLeft > 0);
         }
+#endif
     }
 
     return rc;
