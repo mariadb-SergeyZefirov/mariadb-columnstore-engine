@@ -106,7 +106,7 @@ void DmlReadThread::operator()()
         logging::Message::Args args;
         logging::Message msg(1);
         ostringstream oss;
-        oss << "Read msg id " << msgId << " in the dmlreadthread";
+        oss << "Read msg id " << ((uint32_t)msgId) << " in the dmlreadthread";
         args.add(oss.str());
         msg.format(args);
         logging::Logger logger(logid.fSubsysID);
