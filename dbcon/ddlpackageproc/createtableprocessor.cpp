@@ -622,6 +622,7 @@ keepGoing:
         try
         {
             createWriteDropLogFile( fStartingColOID, uniqueId, oidList );
+	    cout << "createWriteDropLogFile succeed" << endl;
         }
         catch (std::exception& ex)
         {
@@ -725,6 +726,7 @@ keepGoing:
 #ifdef IDB_DDL_DEBUG
             cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << endl;
 #endif
+            cout << fTxnid.id << " Create table We_SVR_WRITE_CREATETABLEFILES: " << errorMsg << ", rolling back." << endl;
             rollBackTransaction( uniqueId, txnID, createTableStmt.fSessionID); //What to do with the error code
             fSessionManager.rolledback(txnID);
         }
@@ -738,6 +740,7 @@ keepGoing:
 
         // Log the DDL statement.
         logDDL(createTableStmt.fSessionID, txnID.id, createTableStmt.fSql, createTableStmt.fOwner);
+	cout << "DDL stat succeed" << endl;
     }
     catch (std::exception& ex)
     {

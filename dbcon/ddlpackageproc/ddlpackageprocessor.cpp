@@ -913,6 +913,7 @@ void DDLPackageProcessor::createWriteDropLogFile(execplan::CalpontSystemCatalog:
 
     if ( rc != 0)
         throw std::runtime_error(errorMsg);
+    cout << "drop tables has been sent and received" << endl;
 }
 
 void DDLPackageProcessor::deleteLogFile(LogFileType fileType, execplan::CalpontSystemCatalog::OID tableOid, uint64_t uniqueId)
