@@ -95,6 +95,7 @@ struct PackageHandler
                     boost::shared_ptr<CalpontSystemCatalog> systemCatalogPtr =
                         CalpontSystemCatalog::makeCalpontSystemCatalog(createTableStmt.fSessionID );
                     boost::scoped_ptr<CreateTableProcessor> processor(new CreateTableProcessor(fDbrm));
+		    processor->setDebugLevel(CreateTableProcessor::VERBOSE); // XXX
                     processor->fTxnid.id = fTxnid.id;
                     processor->fTxnid.valid = true;
                     //cout << "create table using txnid " << fTxnid.id << endl;
