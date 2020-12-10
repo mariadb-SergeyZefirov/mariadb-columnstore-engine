@@ -44,6 +44,13 @@ using namespace WriteEngine;
 namespace WriteEngine
 {
 
+#define SERVER_DEF_MESSAGE(msg) #msg
+static const char* we_messages_names[] =
+{
+    SERVER_MESSAGES_LIST, NULL
+};
+#undef SERVER_DEF_MESSAGE
+
 ReadThread::ReadThread(const IOSocket& ios): fIos(ios)
 {
 
@@ -106,14 +113,14 @@ void DmlReadThread::operator()()
         logging::Message::Args args;
         logging::Message msg(1);
         ostringstream oss;
-        oss << "Read msg id " << ((uint32_t)msgId) << " in the dmlreadthread";
+        oss << "Read msg id " << we_messages_names[msgId] << " in the dmlreadthread";
         args.add(oss.str());
         msg.format(args);
         logging::Logger logger(logid.fSubsysID);
         logger.logMessage(logging::LOG_TYPE_DEBUG, msg, logid);
     }
 
-            cout << "DmlReadThread " << pthread_self () << " received message id " << (uint32_t)msgId << " and bytestream length " << ibs.length() << endl;
+            cout << "DmlReadThread " << pthread_self () << " received message id " << we_messages_names[msgId] << " and bytestream length " << ibs.length() << endl;
             switch (msgId)
             {
                 case WE_SVR_SINGLE_INSERT:
