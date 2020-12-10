@@ -85,7 +85,7 @@ void DmlReadThread::operator()()
     ByteStream::quadbyte PMId;
     ByteStream::byte rc = 0;
     std::string errMsg;
-    //cout << "DmlReadThread created ..." << endl;
+    cout << "DmlReadThread created ..." << endl;
     // queryStats.blocksChanged for delete/update
     uint64_t blocksChanged = 0;
 
@@ -101,7 +101,19 @@ void DmlReadThread::operator()()
             if (msgId != WE_SVR_CLOSE_CONNECTION)
                 ibs >> uniqueID;
 
-            //cout << "DmlReadThread " << pthread_self () << " received message id " << (uint32_t)msgId << " and bytestream length " << ibs.length() << endl;
+    {
+        logging::LoggingID logid(19, 0, 0);
+        logging::Message::Args args;
+        logging::Message msg(1);
+        ostringstream oss;
+        oss << "Read msg id " << msgId << " in the dmlreadthread";
+        args.add(oss.str());
+        msg.format(args);
+        logging::Logger logger(logid.fSubsysID);
+        logger.logMessage(logging::LOG_TYPE_DEBUG, msg, logid);
+    }
+
+            cout << "DmlReadThread " << pthread_self () << " received message id " << (uint32_t)msgId << " and bytestream length " << ibs.length() << endl;
             switch (msgId)
             {
                 case WE_SVR_SINGLE_INSERT:
@@ -399,6 +411,17 @@ void DmlReadThread::operator()()
                 }
 
                 default:
+        {
+            logging::LoggingID logid(19, 0, 0);
+            logging::Message::Args args;
+            logging::Message msg(1);
+            args.add("we_ddlreadthread default case");
+            msg.format(args);
+            logging::Logger logger(logid.fSubsysID);
+            logger.logMessage(logging::LOG_TYPE_INFO, msg, logid);
+            rc = 1;
+            errMsg = msg.msg();
+        }
                     break;
             }
         }
