@@ -86,6 +86,7 @@ struct TxnLBIDRec
         int position = m_LBIDs.size();
         if ( m_LBIDSet.insert(std::pair<BRM::LBID_t, int>(lbid, position)).second)
         {
+            cout << "TxnLBIDRec: lbid " << lbid << " is marked" << endl;
             m_LBIDs.push_back(lbid);
 	    m_ColDataTypes.push_back(colDataType);
         }

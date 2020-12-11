@@ -1737,7 +1737,6 @@ log_this("extents computed, marking!");
        }
 #if 0
         if (NO_ERROR != rc)
->>>>>>> 84a5c649... Debugging regression source
         {
             markTxnExtentsAsInvalid(txnid);
         }
@@ -6153,12 +6152,14 @@ int WriteEngineWrapper::AddLBIDtoList(const TxnID        txnid,
 
     if (maxMin)
     {
+        cout << "lbid " << startingLBID << " goes to maxmin" << endl;
         BRM::CPMaxMin temp;
         rtn = BRMWrapper::getInstance()->getExtentCPMaxMin(startingLBID, temp);
         if (0 != rtn)
         {
             return -1;
         }
+        cout << "lbid " << startingLBID << " has maxmin obtained" << endl;
         maxMin->max = temp.max;
 	maxMin->min = temp.min;
 	maxMin->seqNum = temp.seqNum;
@@ -6169,6 +6170,7 @@ int WriteEngineWrapper::AddLBIDtoList(const TxnID        txnid,
     }
     else
     {
+        cout << "putting lbid " << startingLBID << "into 'mark as invalid' list" << endl;
         spTxnLBIDRec->AddLBID(startingLBID, colStruct.colDataType);
     }
 
