@@ -625,6 +625,7 @@ keepGoing:
             oidList.push_back(fStartingColOID + numColumns + i + 1);
         }
 
+#if 0
         try
         {
             createWriteDropLogFile( fStartingColOID, uniqueId, oidList );
@@ -649,6 +650,7 @@ keepGoing:
             fSessionManager.rolledback(txnID);
             return result;
         }
+#endif
 
         pmNum = (*dbRootPMMap)[useDBRoot];
 
@@ -687,7 +689,7 @@ keepGoing:
                 }
             }
 
-	    cout << "create table files, unique ID " << uniqueId << ", rc " << rc << ", error: " << errorMsg<< endl;
+	    cout << "create table files, unique ID " << uniqueId << ", rc " << (uint32_t)rc << ", error: " << errorMsg<< endl;
             if (rc != 0)
             {
                 //drop the newly created files
@@ -747,7 +749,7 @@ keepGoing:
 
         // Log the DDL statement.
         logDDL(createTableStmt.fSessionID, txnID.id, createTableStmt.fSql, createTableStmt.fOwner);
-	cout << "DDL stat ends, rc " << rc << endl;
+	cout << "DDL stat ends, rc " << (uint32_t)rc << endl;
     }
     catch (std::exception& ex)
     {
