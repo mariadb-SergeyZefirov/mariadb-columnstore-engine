@@ -6241,20 +6241,6 @@ int WriteEngineWrapper::RemoveTxnFromLBIDMap(const TxnID txnid)
     return markTxnExtentsAsInvalid(txnid, true);
 }
 
-/***********************************************************
- * DESCRIPTION:
- *    Remove a transaction LBID list from the LBID map
- *    Called when a transaction ends, either commit or rollback
- * PARAMETERS:
- *    txnid - the transaction to remove.
- * RETURN:
- *    error code
- ***********************************************************/
-int WriteEngineWrapper::RemoveTxnFromLBIDMap(const TxnID txnid)
-{
-    return markTxnExtentsAsInvalid(txnid, true);
-}
-
 
 } //end of namespace
 // vim:ts=4 sw=4:
