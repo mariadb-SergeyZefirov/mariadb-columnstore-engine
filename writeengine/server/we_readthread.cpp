@@ -120,7 +120,7 @@ void DmlReadThread::operator()()
         logger.logMessage(logging::LOG_TYPE_DEBUG, msg, logid);
     }
 
-            cout << "DmlReadThread " << pthread_self () << " received message id " << we_messages_names[msgId] << " and bytestream length " << ibs.length() << endl;
+            cout << "DmlReadThread " << pthread_self () << " received message id " << we_messages_names[msgId] << ", unique id " << uniqueID << " and bytestream length " << ibs.length() << endl;
             switch (msgId)
             {
                 case WE_SVR_SINGLE_INSERT:
@@ -466,6 +466,7 @@ void DmlReadThread::operator()()
             obs << rc;
             obs << errMsg;
         }
+	cout << "answering with unique ID " << uniqueID << endl;
 
         if ((msgId == WE_SVR_COMMIT_BATCH_AUTO_ON) || (msgId == WE_SVR_BATCH_INSERT_END) || (msgId == WE_SVR_FETCH_DDL_LOGS) || (msgId == WE_SVR_GET_WRITTEN_LBIDS))
         {

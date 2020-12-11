@@ -245,6 +245,8 @@ keepGoing:
         return result;
     }
 
+    cout << "CREATE TABLE unique ID " << uniqueId << endl;
+
     fWEClient->addQueue(uniqueId);
 
     try
@@ -365,6 +367,7 @@ keepGoing:
 #ifdef IDB_DDL_DEBUG
             cout << fTxnid.id << " create table got exception" << ex.what() << endl;
 #endif
+            cout << fTxnid.id << " create table got exception" << ex.what() << endl;
             rc = NETWORK_ERROR;
             errorMsg = ex.what();
         }
@@ -374,6 +377,7 @@ keepGoing:
 #ifdef IDB_DDL_DEBUG
             cout << "create table got unknown exception" << endl;
 #endif
+            cout << "create table got unknown exception" << endl;
         }
 
         if (rc != 0)
@@ -400,6 +404,7 @@ keepGoing:
         }
 
         VERBOSE_INFO("Writing meta data to SYSCOLUMN");
+        cout << "Writing meta data to SYSCOLUMN, unique ID " << uniqueId << endl;
         bytestream.restart();
         bytestream << (ByteStream::byte)WE_SVR_WRITE_CREATE_SYSCOLUMN;
         bytestream << uniqueId;
@@ -532,6 +537,7 @@ keepGoing:
         uint16_t useDBRoot = dbRootList[useDBRootIndex];
 
         VERBOSE_INFO("Creating column files");
+        cout << "Creating column files, unique ID " << uniqueId << endl;
         ColumnDef* colDefPtr;
         ddlpackage::ColumnDefList tableDefCols = tableDef.fColumns;
         ColumnDefList::const_iterator iter = tableDefCols.begin();
@@ -681,6 +687,7 @@ keepGoing:
                 }
             }
 
+	    cout << "create table files, unique ID " << uniqueId << ", rc " << rc << ", error: " << errorMsg<< endl;
             if (rc != 0)
             {
                 //drop the newly created files
@@ -740,7 +747,7 @@ keepGoing:
 
         // Log the DDL statement.
         logDDL(createTableStmt.fSessionID, txnID.id, createTableStmt.fSql, createTableStmt.fOwner);
-	cout << "DDL stat succeed" << endl;
+	cout << "DDL stat ends, rc " << rc << endl;
     }
     catch (std::exception& ex)
     {
