@@ -625,7 +625,6 @@ keepGoing:
             oidList.push_back(fStartingColOID + numColumns + i + 1);
         }
 
-#if 0
         try
         {
             createWriteDropLogFile( fStartingColOID, uniqueId, oidList );
@@ -650,7 +649,6 @@ keepGoing:
             fSessionManager.rolledback(txnID);
             return result;
         }
-#endif
 
         pmNum = (*dbRootPMMap)[useDBRoot];
 

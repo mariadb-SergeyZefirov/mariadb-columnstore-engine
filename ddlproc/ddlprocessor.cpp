@@ -289,6 +289,8 @@ struct PackageHandler
 
             string hdfstest = config::Config::makeConfig()->getConfig("Installation", "DBRootStorageType");
 
+	    cout << "hdfstest: " << hdfstest << endl;
+
             if (hdfstest == "hdfs" || hdfstest == "HDFS")
                 cleanPMSysCache();
 
@@ -308,6 +310,7 @@ struct PackageHandler
         }
         catch (logging::IDBExcept& idbEx)
         {
+            cout << "IDBExcept: " << string(idbEx.what()) << endl;
             cleanPMSysCache();
             messageqcpp::ByteStream results;
             messageqcpp::ByteStream::byte status = DDLPackageProcessor::CREATE_ERROR;
