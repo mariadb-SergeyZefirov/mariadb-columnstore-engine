@@ -3057,8 +3057,7 @@ int WriteEngineWrapper::insertColumnRec_SYS(const TxnID& txnid,
                 {
                     RETURN_ON_ERROR(AddLBIDtoList(txnid,
                                               colStructList[i],
-                                              curFbo,
-                                              dummyCPInfo));
+                                              curFbo));
                 }
             }
         }
