@@ -163,6 +163,36 @@ struct CPInfo
         int64_t min_;
     };
     bool isBinaryColumn;
+    /** @brief Set CPInfo into "invalid range" value.  It relies on the isBinaryColumn to be already set. */
+    void toInvalid(bool isColTypeUnsigned) // XXX Maybe we better switch on the column type instead???
+    {
+        if (!isBinaryColumn)
+        {
+            if (isColTypeUnsigned)
+            {
+                max = numeric_limits<uint64_t>::min();
+                min = numeric_limits<uint64_t>::max();
+            }
+            else
+            {
+                max = numeric_limits<int64_t>::min();
+                min = numeric_limits<int64_t>::max();
+            }
+	}
+	else
+	{
+            if (isColTypeUnsigned)
+            {
+                bigMax = 0;
+                bigMin = -1;
+            }
+            else
+            {
+                utils::int128Min(bigMax);
+                utils::int128Max(bigMin);
+            }
+	}
+    }
 };
 typedef std::vector<CPInfo> CPInfoList_t;
 
@@ -183,6 +213,37 @@ struct CPMaxMin
         int64_t min_;
     };
     bool isBinaryColumn;
+
+    /** @brief Set CPMaxMin into "invalid range" value.  It relies on the isBinaryColumn to be already set. */
+    void toInvalid(bool isColTypeUnsigned) // XXX Maybe we better switch on the column type instead???
+    {
+        if (!isBinaryColumn)
+        {
+            if (isColTypeUnsigned)
+            {
+                max = numeric_limits<uint64_t>::min();
+                min = numeric_limits<uint64_t>::max();
+            }
+            else
+            {
+                max = numeric_limits<int64_t>::min();
+                min = numeric_limits<int64_t>::max();
+            }
+	}
+	else
+	{
+            if (isColTypeUnsigned)
+            {
+                bigMax = 0;
+                bigMin = -1;
+            }
+            else
+            {
+                utils::int128Min(bigMax);
+                utils::int128Max(bigMin);
+            }
+	}
+    }
 };
 typedef std::tr1::unordered_map<LBID_t, CPMaxMin> CPMaxMinMap_t;
 

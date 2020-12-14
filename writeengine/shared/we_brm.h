@@ -473,6 +473,8 @@ public:
         m_useVb = val;
     }
 
+    int getExtentCPMaxMin(const BRM::LBID_t lbid, BRM::CPMaxMin& cpMaxMin);
+
 private:
     //--------------------------------------------------------------------------
     // Private methods

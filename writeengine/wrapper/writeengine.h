@@ -166,6 +166,15 @@ public:
                                 const ColType colType,
                                 ColTupleList& curTupleList, void* valArray,
                                 bool bFromList = true) ;
+    /**
+     * @brief Updates range information given old range information, old values, new values and column information.
+     */
+    EXPORT void updateMaxMinRange(const size_t totalNewRow, const size_t totalOldRow,
+                                const execplan::CalpontSystemCatalog::ColType& cscColType,
+                                const ColType colType,
+                                const void* valArray, const void* oldValArray,
+                                BRM::CPInfo* maxMin, bool canStartWithInvalidRange);
+
 
     /**
      * @brief Create a column, include object ids for column data and bitmap files
@@ -705,7 +714,8 @@ private:
                        ColValueList& colValueList,
                        RID* rowIdArray, const ColStructList& newColStructList,
                        ColValueList& newColValueList, const int32_t tableOid,
-                       bool useTmpSuffix, bool versioning = true);
+                       bool useTmpSuffix, bool versioning = true,
+		       ColSplitMaxMinInfoList* maxMins = NULL);
 
     int writeColumnRecBinary(const TxnID& txnid, const ColStructList& colStructList,
                              std::vector<uint64_t>& colValueList,
@@ -715,18 +725,18 @@ private:
                              bool useTmpSuffix, bool versioning = true);
 
     //@Bug 1886,2870 pass the address of ridList vector
-    int writeColumnRec(const TxnID& txnid, 
+    int writeColumnRecUpdate(const TxnID& txnid, 
                        const CSCTypesList& cscColTypeList,
                        const ColStructList& colStructList,
                        const ColValueList& colValueList, std::vector<void*>& colOldValueList,
                        const RIDList& ridList, const int32_t tableOid,
-                       bool convertStructFlag = true, ColTupleList::size_type nRows = 0);
+                       bool convertStructFlag = true, ColTupleList::size_type nRows = 0, std::vector<BRM::CPInfo*>* cpInfos = NULL);
 
     //For update column from column to use
     int writeColumnRecords(const TxnID& txnid, const CSCTypesList& cscColTypeList,
                            std::vector<ColStruct>& colStructList,
                            ColValueList& colValueList, const RIDList& ridLists,
-                           const int32_t tableOid, bool versioning = true);
+                           const int32_t tableOid, bool versioning = true, std::vector<BRM::CPInfo*>* cpInfos = NULL);
 
     /**
     * @brief util method to convert rowid to a column file
@@ -739,18 +749,24 @@ private:
     void AddDictToList(const TxnID txnid, std::vector<BRM::LBID_t>& lbids);
     void RemoveTxnFromDictMap(const TxnID txnid);
 
-    // Bug 4312: We use a hash set to hold the set of starting LBIDS for a given
+    // Bug 4312: We use a hash map to hold the set of starting LBIDS for a given
     // txn so that we don't waste time marking the same extent as invalid. This
     // list should be trimmed if it gets too big.
     int AddLBIDtoList(const TxnID        txnid,
                       const ColStruct& colStruct,
                       const int          fbo,
-		      const BRM::CPInfo& cpInfo // there is dummy value for you to use
-		      );
+                            BRM::CPInfo* cpInfo = NULL // provide CPInfo pointer if you want max/min updated.
+                     );
+
+    // Get CPInfo for given starting LBID and column description structure.
+    int GetLBIDRange(const BRM::LBID_t startingLBID, const ColStruct& colStruct, BRM::CPInfo& cpInfo);
 
     // mark extents of the transaction as invalid. erase transaction from txn->lbidsrec map if requested.
     int markTxnExtentsAsInvalid(const TxnID txnid, bool erase = false);
 
+    // write LBID's new ranges.
+    int setExtentsNewMaxMins(const ColSplitMaxMinInfoList& maxMins, bool haveSplit);
+ 
     int RemoveTxnFromLBIDMap(const TxnID txnid);
 
     int op(int compressionType)

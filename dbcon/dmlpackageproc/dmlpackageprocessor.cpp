@@ -487,6 +487,7 @@ int DMLPackageProcessor::commitBatchAutoOnTransaction(uint64_t uniqueId, BRM::Tx
     //cout << "setting hwm allHwm size " << allHwm.size() << endl;
     vector<BRM::LBID_t> lbidList;
 
+#if 0 // XXX: can we do better?
     if (idbdatafile::IDBPolicy::useHdfs())
     {
         BRM::LBID_t startLbid;
@@ -499,6 +500,7 @@ int DMLPackageProcessor::commitBatchAutoOnTransaction(uint64_t uniqueId, BRM::Tx
     }
     else
         fDbrm->getUncommittedExtentLBIDs(static_cast<BRM::VER_t>(txnID.id), lbidList);
+#endif
 
     vector<BRM::LBID_t>::const_iterator iter = lbidList.begin();
     vector<BRM::LBID_t>::const_iterator end = lbidList.end();

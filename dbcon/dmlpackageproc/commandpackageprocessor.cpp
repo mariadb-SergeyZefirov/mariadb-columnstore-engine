@@ -430,7 +430,11 @@ CommandPackageProcessor::processPackage(dmlpackage::CalpontDMLPackage& cpackage)
 
                 if (!cpInvalidated)
                 {
-                    fDbrm->invalidateUncommittedExtentLBIDs(0, &lbidList);
+		    // XXX: HACK!!!HACK!!!HACK!!!
+		    if (stmt != "COMMIT")
+		    {
+                        fDbrm->invalidateUncommittedExtentLBIDs(0, &lbidList);
+		    }
                 }
             }
         }

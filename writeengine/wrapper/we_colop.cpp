@@ -82,7 +82,8 @@ ColumnOp::~ColumnOp()
  *    tableFid - the file id for table bitmap file
  *    totalRow - the total number of rows need to be allocated
  *    useStartingExtent - Indicates whether rows can be added to an existing
-*               starting extent
+ *               starting extent
+ *    newExtents - where to write extents allocated for newColStructList, etc, structures.
  * RETURN:
  *    NO_ERROR if success
  *    rowIdArray - allocation of the row id left here
@@ -90,7 +91,7 @@ ColumnOp::~ColumnOp()
 int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
                          Column& column, uint64_t totalRow, RID* rowIdArray, HWM& hwm, bool& newExtent, uint64_t& rowsLeft, HWM& newHwm,
                          bool& newFile, ColStructList& newColStructList, DctnryStructList& newDctnryStructList, std::vector<boost::shared_ptr<DBRootExtentTracker> >&   dbRootExtentTrackers,
-                         bool insertSelect, bool isBatchInsert, OID tableOid, bool isFirstBatchPm)
+                         bool insertSelect, bool isBatchInsert, OID tableOid, bool isFirstBatchPm, std::vector<BRM::LBID_t>* newExtents)
 {
     //MultiFiles per OID: always append the rows to the end for now.
     // See if the current HWM block might be in an abbreviated extent that
@@ -371,6 +372,10 @@ int ColumnOp::allocRowId(const TxnID& txnid, bool useStartingExtent,
                     newDctnryStructList[i].fColSegment = segment;
                     newDctnryStructList[i].fColDbRoot = dbRoot;
                     lbids.push_back(extents[i].startLbid);
+                    if (newExtents)
+                    {
+                        (*newExtents).push_back(extents[i].startLbid);
+                    }
                     colDataTypes.push_back(newColStructList[i].colDataType);
                 }
 
@@ -1617,7 +1622,7 @@ void ColumnOp::setColParam(Column& column,
  * RETURN:
  *    NO_ERROR if success, other number otherwise
  ***********************************************************/
-int ColumnOp::writeRow(Column& curCol, uint64_t totalRow, const RID* rowIdArray, const void* valArray, bool bDelete )
+int ColumnOp::writeRow(Column& curCol, uint64_t totalRow, const RID* rowIdArray, const void* valArray, void* oldValArray, bool bDelete )
 {
     uint64_t i = 0, curRowId;
     int      dataFbo, dataBio, curDataFbo = -1;
@@ -1738,6 +1743,12 @@ int ColumnOp::writeRow(Column& curCol, uint64_t totalRow, const RID* rowIdArray,
         }
 
         // This is the write stuff
+        if (oldValArray)
+        {
+            uint8_t* p = static_cast<uint8_t*>(oldValArray);
+            memcpy(p + curCol.colWidth * i, dataBuf + dataBio, curCol.colWidth);
+        }
+
         writeBufValue(dataBuf + dataBio, pVal, curCol.colWidth);
 
         i++;
@@ -1770,7 +1781,7 @@ int ColumnOp::writeRow(Column& curCol, uint64_t totalRow, const RID* rowIdArray,
  * RETURN:
  *    NO_ERROR if success, other number otherwise
  ***********************************************************/
-int ColumnOp::writeRows(Column& curCol, uint64_t totalRow, const RIDList& ridList, const void* valArray, const void* oldValArray, bool bDelete )
+int ColumnOp::writeRows(Column& curCol, uint64_t totalRow, const RIDList& ridList, const void* valArray, void* oldValArray, bool bDelete )
 {
     uint64_t i = 0, curRowId;
     int      dataFbo, dataBio, curDataFbo = -1;
@@ -1885,6 +1896,13 @@ int ColumnOp::writeRows(Column& curCol, uint64_t totalRow, const RIDList& ridLis
                                     curCol.colWidth);
         }
 
+        // This is the write stuff
+        if (oldValArray)
+        {
+            uint8_t* p = static_cast<uint8_t*>(oldValArray);
+            memcpy(p + i * curCol.colWidth, dataBuf + dataBio, curCol.colWidth);
+        }
+
         writeBufValue(dataBuf + dataBio, pVal, curCol.colWidth);
 
         i++;
@@ -1917,7 +1935,7 @@ int ColumnOp::writeRows(Column& curCol, uint64_t totalRow, const RIDList& ridLis
   * RETURN:
   *    NO_ERROR if success, other number otherwise
   ***********************************************************/
-int ColumnOp::writeRowsValues(Column& curCol, uint64_t totalRow, const RIDList& ridList, const void* valArray )
+int ColumnOp::writeRowsValues(Column& curCol, uint64_t totalRow, const RIDList& ridList, const void* valArray, void* oldValArray)
 {
     uint64_t i = 0, curRowId;
     int      dataFbo, dataBio, curDataFbo = -1;
@@ -2025,6 +2043,12 @@ int ColumnOp::writeRowsValues(Column& curCol, uint64_t totalRow, const RIDList& 
         }
 
         // This is the write stuff
+        if (oldValArray)
+        {
+            uint8_t* p = static_cast<uint8_t*>(oldValArray);
+            memcpy(p + curCol.colWidth * i, dataBuf + dataBio, curCol.colWidth);
+        }
+
         writeBufValue(dataBuf + dataBio, pVal, curCol.colWidth);
 
         i++;
