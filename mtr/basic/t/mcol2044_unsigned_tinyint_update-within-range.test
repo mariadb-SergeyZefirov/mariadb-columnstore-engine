@@ -8,3 +8,4 @@ create table t(x tinyint unsigned) engine=columnstore;
 insert into t(x) values (44),(55),(66); # range must be 44..66.
 update t set x=65 where x=55; # range must stay 44..66.
 select max_value, min_value from information_schema.columnstore_extents;
+drop database test_ranges;

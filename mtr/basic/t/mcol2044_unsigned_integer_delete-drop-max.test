@@ -10,3 +10,4 @@ select max_value, min_value from information_schema.columnstore_extents;
 delete from t where x=44; # range must drop to invalid
 select max_value, min_value from information_schema.columnstore_extents;
 
+drop database test_ranges;
