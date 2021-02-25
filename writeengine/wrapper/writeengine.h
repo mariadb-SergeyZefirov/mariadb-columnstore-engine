@@ -91,6 +91,19 @@ struct TxnLBIDRec
 typedef boost::shared_ptr<TxnLBIDRec>  SP_TxnLBIDRec_t;
 typedef std::set<BRM::LBID_t> dictLBIDRec_t;
 
+/** @brief Range information for 1 or 2 extents changed by DML operation. */
+struct ColSplitMaxMinInfo {
+    ExtCPInfo    fSplitMaxMinInfo[2]; /** @brief internal to write engine: min/max ranges for data in one and, possible, second extent. */
+    ExtCPInfo*   fSplitMaxMinInfoPtrs[2]; /** @brief pointers to CPInfos in fSplitMaxMinInfo above */
+    ColSplitMaxMinInfo()
+    {
+        fSplitMaxMinInfoPtrs[0] = fSplitMaxMinInfoPtrs[1] = NULL; // disable by default.
+    }
+};
+
+typedef std::vector<ColSplitMaxMinInfo> ColSplitMaxMinInfoList;
+
+
 /** Class WriteEngineWrapper */
 class WriteEngineWrapper : public WEObj
 {
@@ -173,7 +186,7 @@ public:
                                 const execplan::CalpontSystemCatalog::ColType& cscColType,
                                 const ColType colType,
                                 const void* valArray, const void* oldValArray,
-                                BRM::CPInfo* maxMin, bool canStartWithInvalidRange);
+                                ExtCPInfo* maxMin, bool canStartWithInvalidRange);
 
 
     /**
@@ -730,13 +743,13 @@ private:
                        const ColStructList& colStructList,
                        const ColValueList& colValueList, std::vector<void*>& colOldValueList,
                        const RIDList& ridList, const int32_t tableOid,
-                       bool convertStructFlag = true, ColTupleList::size_type nRows = 0, std::vector<BRM::CPInfo*>* cpInfos = NULL);
+                       bool convertStructFlag = true, ColTupleList::size_type nRows = 0, std::vector<ExtCPInfo*>* cpInfos = NULL);
 
     //For update column from column to use
     int writeColumnRecords(const TxnID& txnid, const CSCTypesList& cscColTypeList,
                            std::vector<ColStruct>& colStructList,
                            ColValueList& colValueList, const RIDList& ridLists,
-                           const int32_t tableOid, bool versioning = true, std::vector<BRM::CPInfo*>* cpInfos = NULL);
+                           const int32_t tableOid, bool versioning = true, std::vector<ExtCPInfo*>* cpInfos = NULL);
 
     /**
     * @brief util method to convert rowid to a column file
@@ -755,11 +768,11 @@ private:
     int AddLBIDtoList(const TxnID        txnid,
                       const ColStruct& colStruct,
                       const int          fbo,
-                            BRM::CPInfo* cpInfo = NULL // provide CPInfo pointer if you want max/min updated.
+                            ExtCPInfo*   cpInfo = NULL // provide CPInfo pointer if you want max/min updated.
                      );
 
     // Get CPInfo for given starting LBID and column description structure.
-    int GetLBIDRange(const BRM::LBID_t startingLBID, const ColStruct& colStruct, BRM::CPInfo& cpInfo);
+    int GetLBIDRange(const BRM::LBID_t startingLBID, const ColStruct& colStruct, ExtCPInfo& cpInfo);
 
     // mark extents of the transaction as invalid. erase transaction from txn->lbidsrec map if requested.
     int markTxnExtentsAsInvalid(const TxnID txnid, bool erase = false);

@@ -338,18 +338,6 @@ typedef std::vector<DctnryTuple> DctColTupleList;
 typedef std::vector<DctnryStruct>  DctnryStructList; /** @brief column struct list */
 typedef std::vector<DctColTupleList>   DctnryValueList;  /** @brief column value list */
 
-/** @brief Range information for 1 or 2 extents changed by DML operation. */
-struct ColSplitMaxMinInfo {
-    BRM::CPInfo    fSplitMaxMinInfo[2]; /** @brief internal to write engine: min/max ranges for data in one and, possible, second extent. */
-    BRM::CPInfo*   fSplitMaxMinInfoPtrs[2]; /** @brief pointers to CPInfos in fSplitMaxMinInfo above */
-    ColSplitMaxMinInfo()
-    {
-        fSplitMaxMinInfoPtrs[0] = fSplitMaxMinInfoPtrs[1] = NULL; // disable by default.
-    }
-};
-
-typedef std::vector<ColSplitMaxMinInfo> ColSplitMaxMinInfoList;
-
 /************************************************************************
  * @brief Used by Bulk Load to describe a column
  ************************************************************************/

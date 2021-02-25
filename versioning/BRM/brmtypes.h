@@ -162,13 +162,14 @@ struct CPInfo
         int128_t bigMin;
         int64_t min_;
     };
-    bool isBinaryColumn;
+    bool isBinaryColumn;   // XXX: we should remove these two fields and replace it with type handler.
+    bool isUnsignedColumn;
     /** @brief Set CPInfo into "invalid range" value.  It relies on the isBinaryColumn to be already set. */
-    void toInvalid(bool isColTypeUnsigned) // XXX Maybe we better switch on the column type instead???
+    void toInvalid() // XXX Maybe we better switch on the column type instead???
     {
         if (!isBinaryColumn)
         {
-            if (isColTypeUnsigned)
+            if (isUnsignedColumn)
             {
                 max = numeric_limits<uint64_t>::min();
                 min = numeric_limits<uint64_t>::max();
@@ -181,7 +182,7 @@ struct CPInfo
 	}
 	else
 	{
-            if (isColTypeUnsigned)
+            if (isUnsignedColumn)
             {
                 bigMax = 0;
                 bigMin = -1;
@@ -212,14 +213,15 @@ struct CPMaxMin
         int128_t bigMin;
         int64_t min_;
     };
-    bool isBinaryColumn;
+    bool isBinaryColumn;   // XXX: these two fields should be replaced with type handler pointer.
+    bool isUnsignedColumn;
 
     /** @brief Set CPMaxMin into "invalid range" value.  It relies on the isBinaryColumn to be already set. */
-    void toInvalid(bool isColTypeUnsigned) // XXX Maybe we better switch on the column type instead???
+    void toInvalid() // XXX Maybe we better switch on the column type instead???
     {
         if (!isBinaryColumn)
         {
-            if (isColTypeUnsigned)
+            if (isUnsignedColumn)
             {
                 max = numeric_limits<uint64_t>::min();
                 min = numeric_limits<uint64_t>::max();
@@ -232,7 +234,7 @@ struct CPMaxMin
 	}
 	else
 	{
-            if (isColTypeUnsigned)
+            if (isUnsignedColumn)
             {
                 bigMax = 0;
                 bigMin = -1;

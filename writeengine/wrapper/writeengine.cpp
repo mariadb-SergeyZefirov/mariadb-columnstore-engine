@@ -242,7 +242,7 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
                                 const execplan::CalpontSystemCatalog::ColType& cscColType,
                                 const ColType colType,
                                 const void* valArrayVoid, const void* oldValArrayVoid,
-                                BRM::CPInfo* maxMin, bool canStartWithInvalidRange)
+                                ExtCPInfo* maxMin, bool canStartWithInvalidRange)
 {
     if (!maxMin)
     {
@@ -1129,8 +1129,8 @@ static void log_this(const char *message,
 #endif
 
 /** @brief Determine whether we may update a column's ranges (by type) and return nullptr if we can't */
-static BRM::CPInfo*
-getCPInfoToUpdateForUpdatableType(const ColStruct& colStruct, BRM::CPInfo* currentCPInfo)
+static ExtCPInfo*
+getCPInfoToUpdateForUpdatableType(const ColStruct& colStruct, ExtCPInfo* currentCPInfo)
 {
     switch(colStruct.colType)
     {
@@ -1153,7 +1153,7 @@ getCPInfoToUpdateForUpdatableType(const ColStruct& colStruct, BRM::CPInfo* curre
 /** @brief Check if range is valid.
  */
 static bool
-validRange(const BRM::CPInfo& cpInfo)
+validRange(const ExtCPInfo& cpInfo)
 {
     return false;
 }
@@ -1168,7 +1168,7 @@ validRange(const BRM::CPInfo& cpInfo)
  * To achieve that, we filter these invalid ranges here.
  */
 static void
-squeezeValidCPInfos(std::vector<BRM::CPInfo>& cpInfos)
+squeezeValidCPInfos(std::vector<ExtCPInfo>& cpInfos)
 {
     size_t i, j;
     for(i=0, j=0; i < cpInfos.size(); i++) {
@@ -1321,8 +1321,8 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                 return rc;
 
             //Create column files
-            BRM::CPInfoList_t cpinfoList;
-            BRM::CPInfo cpInfo;
+            ExtCPInfoList cpinfoList;
+            ExtCPInfo cpInfo;
 
             for ( i = 0; i < extents.size(); i++)
             {
@@ -1939,7 +1939,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                 width = colStructList[i].colWidth;
                 if (firstHalfCount)
 		{
-                    BRM::CPInfo* cpInfoP = getCPInfoToUpdateForUpdatableType(colStructList[i], &maxMins[i].fSplitMaxMinInfo[0]);
+                    ExtCPInfo* cpInfoP = getCPInfoToUpdateForUpdatableType(colStructList[i], &maxMins[i].fSplitMaxMinInfo[0]);
                     RID thisRid = rowsLeft ? lastRid : lastRidNew;
                     successFlag = colOp->calculateRowId(thisRid, BYTE_PER_BLOCK / width, width, curFbo, curBio);
 
@@ -1956,7 +1956,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 		}
                 if (rowsLeft)
 		{
-                    BRM::CPInfo* cpInfoP = getCPInfoToUpdateForUpdatableType(colStructList[i], &maxMins[i].fSplitMaxMinInfo[1]);
+                    ExtCPInfo* cpInfoP = getCPInfoToUpdateForUpdatableType(colStructList[i], &maxMins[i].fSplitMaxMinInfo[1]);
 		    if (cpInfoP)
 		    {
                         RETURN_ON_ERROR(GetLBIDRange(newExtentsStartingLbids[i], colStructList[i], *cpInfoP));
@@ -1972,12 +1972,12 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
         //----------------------------------------------------------------------
         // Write row(s) to database file(s)
         //----------------------------------------------------------------------
-        std::vector<BRM::CPInfo> cpinfoList;
+        std::vector<ExtCPInfo> cpinfoList;
         for (auto& splitCPInfo : maxMins)
         {
             for (i = 0; i < 2; i ++)
             {
-                BRM::CPInfo* cpInfo = splitCPInfo.fSplitMaxMinInfoPtrs[i];
+                ExtCPInfo* cpInfo = splitCPInfo.fSplitMaxMinInfoPtrs[i];
                 if (cpInfo)
                 {
                     cpinfoList.push_back(*cpInfo);
@@ -2015,7 +2015,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                 {
                     for (i = 0; i < 2; i ++)
                     {
-                        BRM::CPInfo* cpInfo = splitCPInfo.fSplitMaxMinInfoPtrs[i];
+                        ExtCPInfo* cpInfo = splitCPInfo.fSplitMaxMinInfoPtrs[i];
                         if (cpInfo)
                         {
                             cpinfoList[index] = *cpInfo;
@@ -2145,8 +2145,8 @@ int WriteEngineWrapper::insertColumnRecsBinary(const TxnID& txnid,
                 return rc;
 
             //Create column files
-            BRM::CPInfoList_t cpinfoList;
-            BRM::CPInfo cpInfo;
+            ExtCPInfoList cpinfoList;
+            ExtCPInfo cpInfo;
 
             for ( i = 0; i < extents.size(); i++)
             {
@@ -4493,7 +4493,7 @@ int WriteEngineWrapper::updateColumnRec(const TxnID& txnid,
     DctnryStructList dctnryStructList;
     WriteEngine::CSCTypesList cscColTypeList;
     ColumnOp* colOp = NULL;
-    std::vector<BRM::CPInfo> infosToUpdate;
+    ExtCPInfoList infosToUpdate;
 
 
     if (m_opType != DELETE)
@@ -4566,13 +4566,13 @@ int WriteEngineWrapper::updateColumnRec(const TxnID& txnid,
         rid_iter = ridLists[extent].begin();
         RID aRid = *rid_iter;
 
-        std::vector<BRM::CPInfo> currentExtentRanges(colStructList.size()); // temporary for each extent.
-        std::vector<BRM::CPInfo*> currentExtentRangesPtrs(colStructList.size(), NULL); // pointers for each extent.
+        ExtCPInfoList currentExtentRanges(colStructList.size()); // temporary for each extent.
+        std::vector<ExtCPInfo*> currentExtentRangesPtrs(colStructList.size(), NULL); // pointers for each extent.
 
         for (unsigned j = 0; j < colStructList.size(); j++)
         {
             colOp = m_colOp[op(colStructList[j].fCompressionType)];
-            BRM::CPInfo* cpInfoP = &(currentExtentRanges[j]);
+            ExtCPInfo* cpInfoP = &(currentExtentRanges[j]);
 	    cpInfoP = getCPInfoToUpdateForUpdatableType(colStructList[j], cpInfoP);
             currentExtentRangesPtrs[j] = cpInfoP;
 
@@ -4621,7 +4621,7 @@ int WriteEngineWrapper::updateColumnRec(const TxnID& txnid,
     markTxnExtentsAsInvalid(txnid);
     if (rc == NO_ERROR)
     {
-        std::vector<BRM::CPInfo> infosToDrop = infosToUpdate;
+        ExtCPInfoList infosToDrop = infosToUpdate;
 	for (auto& cpInfo : infosToDrop)
 	{
             cpInfo.seqNum = -1;
@@ -4648,9 +4648,9 @@ int WriteEngineWrapper::updateColumnRecs(const TxnID& txnid,
     int curFbo = 0, curBio, lastFbo = -1;
     RID aRid = ridLists[0];
     int rc = 0;
-    std::vector<BRM::CPInfo> infosToUpdate(colExtentsStruct.size());
-    std::vector<BRM::CPInfo> bulkUpdateInfos;
-    std::vector<BRM::CPInfo*> pointersToInfos; // pointersToInfos[i] points to infosToUpdate[i] and may be NULL.
+    ExtCPInfoList infosToUpdate(colExtentsStruct.size());
+    ExtCPInfoList bulkUpdateInfos;
+    std::vector<ExtCPInfo*> pointersToInfos; // pointersToInfos[i] points to infosToUpdate[i] and may be NULL.
 
     m_opType = UPDATE;
 
@@ -4658,7 +4658,7 @@ int WriteEngineWrapper::updateColumnRecs(const TxnID& txnid,
     {
         colOp = m_colOp[op(colExtentsStruct[j].fCompressionType)];
 
-        BRM::CPInfo* cpInfoP = &(infosToUpdate[j]);
+        ExtCPInfo* cpInfoP = &(infosToUpdate[j]);
 	cpInfoP = getCPInfoToUpdateForUpdatableType(colExtentsStruct[j], cpInfoP);
         pointersToInfos.push_back(cpInfoP);
 
@@ -4725,7 +4725,7 @@ int WriteEngineWrapper::writeColumnRecords(const TxnID& txnid,
         const CSCTypesList& cscColTypeList,
         vector<ColStruct>& colStructList,
         ColValueList& colValueList,
-        const RIDList& ridLists, const int32_t tableOid, bool versioning, std::vector<BRM::CPInfo*>* cpInfos)
+        const RIDList& ridLists, const int32_t tableOid, bool versioning, std::vector<ExtCPInfo*>* cpInfos)
 {
     bool           bExcp;
     int            rc = 0;
@@ -4746,7 +4746,7 @@ int WriteEngineWrapper::writeColumnRecords(const TxnID& txnid,
 
     for (i = 0; i < totalColumn; i++)
     {
-        BRM::CPInfo* cpInfo = NULL;
+        ExtCPInfo* cpInfo = NULL;
         if (cpInfos)
         {
             cpInfo = (*cpInfos)[i];
@@ -5015,7 +5015,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
                 // have to init the size here
                 allocateValArray(valArray, totalRow1, colStructList[i].colType, colStructList[i].colWidth);
 
-                BRM::CPInfo* cpInfo = getCPInfoToUpdateForUpdatableType(colStructList[i],
+                ExtCPInfo* cpInfo = getCPInfoToUpdateForUpdatableType(colStructList[i],
 			                                                maxMins ?
                                                                         ((*maxMins)[i]).fSplitMaxMinInfoPtrs[0] : NULL);
 
@@ -5156,7 +5156,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
                 }
             }
 
-            BRM::CPInfo* cpInfo = getCPInfoToUpdateForUpdatableType(newColStructList[i],
+            ExtCPInfo* cpInfo = getCPInfoToUpdateForUpdatableType(newColStructList[i],
                                                                     maxMins ?
                                                                     ((*maxMins)[i]).fSplitMaxMinInfoPtrs[1] : NULL);
             allocateValArray(valArray, totalRow2, newColStructList[i].colType, newColStructList[i].colWidth);
@@ -5232,7 +5232,7 @@ int WriteEngineWrapper::writeColumnRec(const TxnID& txnid,
 
             ColumnOp* colOp = m_colOp[op(colStructList[i].fCompressionType)];
 
-            BRM::CPInfo* cpInfo = getCPInfoToUpdateForUpdatableType(colStructList[i],
+            ExtCPInfo* cpInfo = getCPInfoToUpdateForUpdatableType(colStructList[i],
 			                                            maxMins ?
                                                                     ((*maxMins)[i]).fSplitMaxMinInfoPtrs[0] : NULL);
 
@@ -5723,7 +5723,7 @@ int WriteEngineWrapper::writeColumnRecUpdate(const TxnID& txnid,
                                        const int32_t tableOid,
                                        bool convertStructFlag,
                                        ColTupleList::size_type nRows,
-                                       std::vector<BRM::CPInfo*>* cpInfos)
+                                       std::vector<ExtCPInfo*>* cpInfos)
 {
     bool           bExcp;
     int            rc = 0;
@@ -5903,7 +5903,7 @@ int WriteEngineWrapper::writeColumnRecUpdate(const TxnID& txnid,
 
         allocateValArray(valArray, 1, curColStruct.colType, curColStruct.colWidth);
 
-	BRM::CPInfo* cpInfo;
+	ExtCPInfo* cpInfo;
 	cpInfo = cpInfos ? ((*cpInfos)[i]) : NULL;
 
 	if (cpInfo)
@@ -6577,7 +6577,7 @@ void WriteEngineWrapper::AddDictToList(const TxnID txnid,
 }
 
 // Get CPInfo for given starting LBID and column description structure.
-int WriteEngineWrapper::GetLBIDRange(const BRM::LBID_t startingLBID, const ColStruct& colStruct, BRM::CPInfo& cpInfo)
+int WriteEngineWrapper::GetLBIDRange(const BRM::LBID_t startingLBID, const ColStruct& colStruct, ExtCPInfo& cpInfo)
 {
     int rtn;
     BRM::CPMaxMin maxMin;
@@ -6586,6 +6586,8 @@ int WriteEngineWrapper::GetLBIDRange(const BRM::LBID_t startingLBID, const ColSt
     rtn = BRMWrapper::getInstance()->getExtentCPMaxMin(startingLBID, maxMin);
     if (rtn)
     {
+        cpInfo.toInvalid();
+	return rtn;
         maxMin.toInvalid(datatypes::isUnsigned(colStruct.colDataType));
     }
     // if we are provided with CPInfo pointer to update, we record current range there.
@@ -6630,7 +6632,7 @@ int WriteEngineWrapper::GetLBIDRange(const BRM::LBID_t startingLBID, const ColSt
 int WriteEngineWrapper::AddLBIDtoList(const TxnID        txnid,
                                       const ColStruct&   colStruct,
                                       const int          fbo,
-				            BRM::CPInfo* cpInfo)
+				            ExtCPInfo*   cpInfo)
 {
     int rtn = 0;
 
