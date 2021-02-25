@@ -1128,7 +1128,7 @@ static void log_this(const char *message,
 }
 #endif
 
-/** @brief Determine whether we may update a column's ranges (by type) and return NULL if we can't */
+/** @brief Determine whether we may update a column's ranges (by type) and return nullptr if we can't */
 static BRM::CPInfo*
 getCPInfoToUpdateForUpdatableType(const ColStruct& colStruct, BRM::CPInfo* currentCPInfo)
 {
@@ -1146,7 +1146,7 @@ getCPInfoToUpdateForUpdatableType(const ColStruct& colStruct, BRM::CPInfo* curre
             return currentCPInfo;
         // all unsupported types must not be supported.
         default:
-            return NULL; // safe choice for everything we can't do.
+            return nullptr; // safe choice for everything we can't do.
     }
 }
 
