@@ -933,8 +933,6 @@ int WriteEngineWrapper::deleteRow(const TxnID& txnid, const vector<CSCTypesList>
     string           tmpStr("");
     vector<DctnryStructList> dctnryExtentsStruct;
 
-    m_opType = DELETE;
-
     if (colExtentsStruct.size() == 0 || ridLists.size() == 0)
         return ERR_STRUCT_EMPTY;
 
