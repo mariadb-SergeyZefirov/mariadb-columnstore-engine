@@ -265,20 +265,10 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
     if (!canStartWithInvalidRange)
     {
         // check if range is invalid, we can't update it.
-        if (isUnsigned)
-	{
-            if (static_cast<uint64_t>(maxMin->max) < static_cast<uint64_t>(maxMin->min))
-            {
-                return;
-            }
-	}
-	else
-	{
-            if (maxMin->max < maxMin->min)
-            {
-                return;
-            }
-	}
+	if (!maxMin->isValid())
+        {
+            return ;
+        }
     }
     size_t i;
     for (i = 0; i < totalOldRow; i++) {
@@ -336,56 +326,56 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
         {
             if (!oldValArrayVoid)
             { // insertion. we can update range directly. range will not become invalid here.
-                maxMin->max = std::max((uint64_t)maxMin->max, uvalue);
-                maxMin->min = std::min((uint64_t)maxMin->min, uvalue);
+                maxMin->fCPInfo.max = std::max((uint64_t)maxMin->fCPInfo.max, uvalue);
+                maxMin->fCPInfo.min = std::min((uint64_t)maxMin->fCPInfo.min, uvalue);
             }
             else if (!valArrayVoid)
             { // deletion. we need to check old value only, is it on (or outside) range boundary.
-                if (oldUValue >= (uint64_t)maxMin->max || oldUValue <= (uint64_t)maxMin->min)
+                if (oldUValue >= (uint64_t)maxMin->fCPInfo.max || oldUValue <= (uint64_t)maxMin->fCPInfo.min)
                 {
-                    maxMin->toInvalid(isUnsigned);
+                    maxMin->toInvalid();
                     return ; // no point working further.
                 }
             }
             else if (valArrayVoid && oldValArrayVoid)
             { // update. we need to check boundaries as in deletion and extend as in insertion.
                 // check boundaries as in deletion accounting for possible extension.
-                if (    (oldUValue <= (uint64_t)maxMin->min && uvalue > oldUValue)
-                     || (oldUValue >= (uint64_t)maxMin->max && uvalue < oldUValue))
+                if (    (oldUValue <= (uint64_t)maxMin->fCPInfo.min && uvalue > oldUValue)
+                     || (oldUValue >= (uint64_t)maxMin->fCPInfo.max && uvalue < oldUValue))
                 { // we are overwriting value on the boundary with value that does not preserve or extend range.
-                    maxMin->toInvalid(isUnsigned);
+                    maxMin->toInvalid();
                     return;
                 }
-                maxMin->max = std::max((uint64_t)maxMin->max, uvalue);
-                maxMin->min = std::min((uint64_t)maxMin->min, uvalue);
+                maxMin->fCPInfo.max = std::max((uint64_t)maxMin->fCPInfo.max, uvalue);
+                maxMin->fCPInfo.min = std::min((uint64_t)maxMin->fCPInfo.min, uvalue);
             }
         }
 	else
 	{
             if (!oldValArrayVoid)
             { // insertion. we can update range directly. range will not become invalid here.
-                maxMin->max = std::max(maxMin->max, value);
-                maxMin->min = std::min(maxMin->min, value);
+                maxMin->fCPInfo.max = std::max(maxMin->fCPInfo.max, value);
+                maxMin->fCPInfo.min = std::min(maxMin->fCPInfo.min, value);
             }
             else if (!valArrayVoid)
             { // deletion. we need to check old value only, is it on (or outside) range boundary.
-                if (oldValue >= maxMin->max || oldValue <= maxMin->min)
+                if (oldValue >= maxMin->fCPInfo.max || oldValue <= maxMin->fCPInfo.min)
                 {
-                    maxMin->toInvalid(isUnsigned);
+                    maxMin->toInvalid();
                     return ; // no point working further.
                 }
             }
             else if (valArrayVoid && oldValArrayVoid)
             { // update. we need to check boundaries as in deletion and extend as in insertion.
                 // check boundaries as in deletion accounting for possible extension.
-                if (    (oldValue <= maxMin->min && value > oldValue)
-                     || (oldValue >= maxMin->max && value < oldValue))
+                if (    (oldValue <= maxMin->fCPInfo.min && value > oldValue)
+                     || (oldValue >= maxMin->fCPInfo.max && value < oldValue))
                 { // we are overwriting value on the boundary with value that does not preserve or extend range.
-                    maxMin->toInvalid(isUnsigned);
+                    maxMin->toInvalid();
                     return;
                 }
-                maxMin->max = std::max(maxMin->max, value);
-                maxMin->min = std::min(maxMin->min, value);
+                maxMin->fCPInfo.max = std::max(maxMin->fCPInfo.max, value);
+                maxMin->fCPInfo.min = std::min(maxMin->fCPInfo.min, value);
             }
 	}
     }
@@ -1150,14 +1140,6 @@ getCPInfoToUpdateForUpdatableType(const ColStruct& colStruct, ExtCPInfo* current
     }
 }
 
-/** @brief Check if range is valid.
- */
-static bool
-validRange(const ExtCPInfo& cpInfo)
-{
-    return false;
-}
-
 /** @brief Let only valid ranges to be present.
  *
  * There can be a case that we have computed invalid range while computing updated ranges.
@@ -1171,14 +1153,18 @@ static void
 squeezeValidCPInfos(std::vector<ExtCPInfo>& cpInfos)
 {
     size_t i, j;
+    if (cpInfos.size() < 1)
+    {
+        return ;
+    }
     for(i=0, j=0; i < cpInfos.size(); i++) {
-        if (validRange(cpInfos[i]))
+        if (cpInfos[i].isValid())
         {
             cpInfos[j] = cpInfos[i];
 	    j++;
         }
     }
-    cpInfos.resize(j); // resize to the number of elements copied.
+    cpInfos.resize(j, cpInfos[0]); // resize to the number of elements copied.
 }
 
 /*@insertColumnRecs -  Insert value(s) into a column
@@ -1256,9 +1242,9 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
     for (i = 0; i < colStructList.size(); i++)
         Convertor::convertColType(&colStructList[i]);
 
-    for (i = 0; i < colStructList.size(); i++)
+    for (const auto& colStruct : colStructList)
     {
-        ColSplitMaxMinInfo tmp;
+        ColSplitMaxMinInfo tmp(colStruct.colDataType, colStruct.colWidth);
         maxMins.push_back(tmp);
     }
 
@@ -1322,10 +1308,10 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 
             //Create column files
             ExtCPInfoList cpinfoList;
-            ExtCPInfo cpInfo;
 
             for ( i = 0; i < extents.size(); i++)
             {
+                ExtCPInfo cpInfo(colStructList[i].colDataType, colStructList[i].colWidth);
                 colOp = m_colOp[op(colStructList[i].fCompressionType)];
                 colOp->initColumn(curCol);
                 colOp->setColParam(curCol, colId, colStructList[i].colWidth, colStructList[i].colDataType,
@@ -1339,39 +1325,12 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                 if (rc != NO_ERROR)
                     return rc;
 
-                cpInfo.isBinaryColumn = colStructList[i].colWidth > 8;
+		cpInfo.toInvalid();
 
-                if (!cpInfo.isBinaryColumn)
-                {
-                    if (isUnsigned(colStructList[i].colDataType))
-                    {
-                        cpInfo.max = 0;
-                        cpInfo.min = static_cast<int64_t>(numeric_limits<uint64_t>::max());
-                    }
-                    else
-                    {
-                        cpInfo.max = numeric_limits<int64_t>::min();
-                        cpInfo.min = numeric_limits<int64_t>::max();
-                    }
-                }
-                else
-                {
-                    if (isUnsigned(colStructList[i].colDataType))
-                    {
-                        cpInfo.bigMax = 0;
-                        cpInfo.bigMin = -1;
-                    }
-                    else
-                    {
-                        utils::int128Min(cpInfo.bigMax);
-                        utils::int128Max(cpInfo.bigMin);
-                    }
-                }
-
-                cpInfo.seqNum = -1;
+                cpInfo.fCPInfo.seqNum = -1;
 
                 //mark the extents to invalid
-                cpInfo.firstLbid = extents[i].startLbid;
+                cpInfo.fCPInfo.firstLbid = extents[i].startLbid;
                 cpinfoList.push_back(cpInfo);
                 colStructList[i].fColPartition = partitionNum;
                 colStructList[i].fColSegment = segmentNum;
@@ -1981,7 +1940,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                 if (cpInfo)
                 {
                     cpinfoList.push_back(*cpInfo);
-                    cpinfoList[cpinfoList.size() - 1].seqNum = -1;
+                    cpinfoList[cpinfoList.size() - 1].fCPInfo.seqNum = -1;
                 }
             }
         }
@@ -2019,7 +1978,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                         if (cpInfo)
                         {
                             cpinfoList[index] = *cpInfo;
-                            cpinfoList[index].seqNum ++;
+                            cpinfoList[index].fCPInfo.seqNum ++;
                             index ++;
                         }
                     }
@@ -2146,10 +2105,10 @@ int WriteEngineWrapper::insertColumnRecsBinary(const TxnID& txnid,
 
             //Create column files
             ExtCPInfoList cpinfoList;
-            ExtCPInfo cpInfo;
 
             for ( i = 0; i < extents.size(); i++)
             {
+                ExtCPInfo cpInfo(colStructList[i].colDataType, colStructList[i].colWidth);
                 colOp = m_colOp[op(colStructList[i].fCompressionType)];
                 colOp->initColumn(curCol);
                 colOp->setColParam(curCol, 0, colStructList[i].colWidth, colStructList[i].colDataType,
@@ -2163,39 +2122,12 @@ int WriteEngineWrapper::insertColumnRecsBinary(const TxnID& txnid,
                 if (rc != NO_ERROR)
                     return rc;
 
-                cpInfo.isBinaryColumn = colStructList[i].colWidth > 8;
+                cpInfo.toInvalid();
 
-                if (!cpInfo.isBinaryColumn)
-                {
-                    if (isUnsigned(colStructList[i].colDataType))
-                    {
-                        cpInfo.max = 0;
-                        cpInfo.min = static_cast<int64_t>(numeric_limits<uint64_t>::max());
-                    }
-                    else
-                    {
-                        cpInfo.max = numeric_limits<int64_t>::min();
-                        cpInfo.min = numeric_limits<int64_t>::max();
-                    }
-                }
-                else
-                {
-                    if (isUnsigned(colStructList[i].colDataType))
-                    {
-                        cpInfo.bigMax = 0;
-                        cpInfo.bigMin = -1;
-                    }
-                    else
-                    {
-                        utils::int128Min(cpInfo.bigMax);
-                        utils::int128Max(cpInfo.bigMin);
-                    }
-                }
-
-                cpInfo.seqNum = -1;
+                cpInfo.fCPInfo.seqNum = -1;
 
                 //mark the extents to invalid
-                cpInfo.firstLbid = extents[i].startLbid;
+                cpInfo.fCPInfo.firstLbid = extents[i].startLbid;
                 cpinfoList.push_back(cpInfo);
                 colStructList[i].fColPartition = partitionNum;
                 colStructList[i].fColSegment = segmentNum;
@@ -4566,7 +4498,11 @@ int WriteEngineWrapper::updateColumnRec(const TxnID& txnid,
         rid_iter = ridLists[extent].begin();
         RID aRid = *rid_iter;
 
-        ExtCPInfoList currentExtentRanges(colStructList.size()); // temporary for each extent.
+        ExtCPInfoList currentExtentRanges;
+	for (const auto& colStruct : colStructList)
+	{
+            currentExtentRanges.push_back(ExtCPInfo(colStruct.colDataType, colStruct.colWidth)); // temporary for each extent.
+	}
         std::vector<ExtCPInfo*> currentExtentRangesPtrs(colStructList.size(), NULL); // pointers for each extent.
 
         for (unsigned j = 0; j < colStructList.size(); j++)
@@ -4613,7 +4549,7 @@ int WriteEngineWrapper::updateColumnRec(const TxnID& txnid,
 	{
 	    if (cpInfoPtr)
 	    {
-		cpInfoPtr->seqNum ++;
+		cpInfoPtr->fCPInfo.seqNum ++;
 	        infosToUpdate.push_back(*cpInfoPtr);
 	    }
 	}
@@ -4624,7 +4560,7 @@ int WriteEngineWrapper::updateColumnRec(const TxnID& txnid,
         ExtCPInfoList infosToDrop = infosToUpdate;
 	for (auto& cpInfo : infosToDrop)
 	{
-            cpInfo.seqNum = -1;
+            cpInfo.fCPInfo.seqNum = -1;
 	}
         rc = BRMWrapper::getInstance()->setExtentsMaxMin(infosToDrop);
 	squeezeValidCPInfos(infosToUpdate);
@@ -4648,7 +4584,11 @@ int WriteEngineWrapper::updateColumnRecs(const TxnID& txnid,
     int curFbo = 0, curBio, lastFbo = -1;
     RID aRid = ridLists[0];
     int rc = 0;
-    ExtCPInfoList infosToUpdate(colExtentsStruct.size());
+    ExtCPInfoList infosToUpdate;
+    for (const auto& colStruct : colExtentsStruct)
+    {
+        infosToUpdate.push_back(ExtCPInfo(colStruct.colDataType, colStruct.colWidth));
+    }
     ExtCPInfoList bulkUpdateInfos;
     std::vector<ExtCPInfo*> pointersToInfos; // pointersToInfos[i] points to infosToUpdate[i] and may be NULL.
 
@@ -4689,7 +4629,7 @@ int WriteEngineWrapper::updateColumnRecs(const TxnID& txnid,
         if (cpInfoP)
         {
 	    auto tmp = *cpInfoP;
-	    tmp.seqNum = -1;
+	    tmp.fCPInfo.seqNum = -1;
             bulkUpdateInfos.push_back(tmp);
         }
     }
@@ -4707,7 +4647,7 @@ int WriteEngineWrapper::updateColumnRecs(const TxnID& txnid,
 	{
 	    if (cpInfoP)
 	    {
-	        cpInfoP->seqNum ++;
+	        cpInfoP->fCPInfo.seqNum ++;
 	        bulkUpdateInfos.push_back(*cpInfoP);
 	    }
 	}
@@ -6588,7 +6528,6 @@ int WriteEngineWrapper::GetLBIDRange(const BRM::LBID_t startingLBID, const ColSt
     {
         cpInfo.toInvalid();
 	return rtn;
-        maxMin.toInvalid(datatypes::isUnsigned(colStruct.colDataType));
     }
     // if we are provided with CPInfo pointer to update, we record current range there.
     // please note that we may fail here for unknown extents - e.g., newly allocated ones.
@@ -6603,13 +6542,13 @@ int WriteEngineWrapper::GetLBIDRange(const BRM::LBID_t startingLBID, const ColSt
     //     If we have failed to obtain information above we will abort execution of the function
     //     that called us.
     //     This is potential source of bugs.
-    cpInfo.bigMax = maxMin.bigMax;
-    cpInfo.bigMin = maxMin.bigMin;
-    cpInfo.max = maxMin.max;
-    cpInfo.min = maxMin.min;
-    cpInfo.seqNum = maxMin.seqNum;
-    cpInfo.firstLbid = startingLBID;
-    cpInfo.isBinaryColumn = maxMin.isBinaryColumn;
+    cpInfo.fCPInfo.bigMax = maxMin.bigMax;
+    cpInfo.fCPInfo.bigMin = maxMin.bigMin;
+    cpInfo.fCPInfo.max = maxMin.max;
+    cpInfo.fCPInfo.min = maxMin.min;
+    cpInfo.fCPInfo.seqNum = maxMin.seqNum;
+    cpInfo.fCPInfo.firstLbid = startingLBID;
+    cpInfo.fCPInfo.isBinaryColumn = maxMin.isBinaryColumn;
     return rtn;
 }
 

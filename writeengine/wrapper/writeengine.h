@@ -95,7 +95,8 @@ typedef std::set<BRM::LBID_t> dictLBIDRec_t;
 struct ColSplitMaxMinInfo {
     ExtCPInfo    fSplitMaxMinInfo[2]; /** @brief internal to write engine: min/max ranges for data in one and, possible, second extent. */
     ExtCPInfo*   fSplitMaxMinInfoPtrs[2]; /** @brief pointers to CPInfos in fSplitMaxMinInfo above */
-    ColSplitMaxMinInfo()
+    ColSplitMaxMinInfo(execplan::CalpontSystemCatalog::ColDataType colDataType, int colWidth)
+        : fSplitMaxMinInfo { ExtCPInfo(colDataType, colWidth), ExtCPInfo(colDataType, colWidth) }
     {
         fSplitMaxMinInfoPtrs[0] = fSplitMaxMinInfoPtrs[1] = NULL; // disable by default.
     }

@@ -960,7 +960,7 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
             refBufOffset = BYTE_PER_BLOCK;
             colBufOffset = BYTE_PER_BLOCK;
             dirty = false;
-            BRM::CPInfo cpInfo;
+            ExtCPInfo cpInfo(column.colDataType, column.colWidth);
 
             if (autoincrement)
             {
@@ -1045,19 +1045,17 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
                     }
                 }
 
-                cpInfo.isBinaryColumn = column.colWidth > 8;
-
-                if (!cpInfo.isBinaryColumn)
+                if (!cpInfo.isBinaryColumn())
                 {
-                    cpInfo.max = nextValStart + nexValNeeded - 1;
-                    cpInfo.min = nextValStart;
+                    cpInfo.fCPInfo.max = nextValStart + nexValNeeded - 1;
+                    cpInfo.fCPInfo.min = nextValStart;
                 }
                 else
                 {
-                    cpInfo.bigMax = nextValStart + nexValNeeded - 1;
-                    cpInfo.bigMin = nextValStart;
+                    cpInfo.fCPInfo.bigMax = nextValStart + nexValNeeded - 1;
+                    cpInfo.fCPInfo.bigMin = nextValStart;
                 }
-                cpInfo.seqNum = 0;
+                cpInfo.fCPInfo.seqNum = 0;
 
             }
             else
@@ -1110,36 +1108,9 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
                     }
                 }
 
-                cpInfo.isBinaryColumn = column.colWidth > 8;
+                cpInfo.toInvalid();
 
-                if (!cpInfo.isBinaryColumn)
-                {
-                    if (isUnsigned(column.colDataType))
-                    {
-                        cpInfo.max = 0;
-                        cpInfo.min = static_cast<int64_t>(numeric_limits<uint64_t>::max());
-                    }
-                    else
-                    {
-                        cpInfo.max = numeric_limits<int64_t>::min();
-                        cpInfo.min = numeric_limits<int64_t>::max();
-                    }
-                }
-                else
-                {
-                    if (isUnsigned(column.colDataType))
-                    {
-                        cpInfo.bigMax = 0;
-                        cpInfo.min = -1;
-                    }
-                    else
-                    {
-                        utils::int128Min(cpInfo.bigMax);
-                        utils::int128Max(cpInfo.bigMin);
-                    }
-                }
-
-                cpInfo.seqNum = -1;
+                cpInfo.fCPInfo.seqNum = -1;
             }
 
             if (dirty)
@@ -1162,39 +1133,11 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
 
             if (autoincrement) //@Bug 4074. Mark it invalid first to set later
             {
-                BRM::CPInfo cpInfo1;
-                cpInfo1.isBinaryColumn = column.colWidth > 8;
-
-                if (!cpInfo1.isBinaryColumn)
-                {
-                    if (isUnsigned(column.colDataType))
-                    {
-                        cpInfo1.max = 0;
-                        cpInfo1.min = static_cast<int64_t>(numeric_limits<uint64_t>::max());
-                    }
-                    else
-                    {
-                        cpInfo1.max = numeric_limits<int64_t>::min();
-                        cpInfo1.min = numeric_limits<int64_t>::max();
-                    }
-                }
-                else
-                {
-                    if (isUnsigned(column.colDataType))
-                    {
-                        cpInfo1.bigMax = 0;
-                        cpInfo1.bigMin = -1;
-                    }
-                    else
-                    {
-                        utils::int128Min(cpInfo1.bigMax);
-                        utils::int128Max(cpInfo1.bigMin);
-                    }
-                }
-
-                cpInfo1.seqNum = -1;
-                cpInfo1.firstLbid = startLbid;
-                BRM::CPInfoList_t cpinfoList1;
+                ExtCPInfo cpInfo1(column.colDataType, column.colWidth);
+		cpInfo1.toInvalid();
+		cpInfo1.fCPInfo.seqNum = -1;
+                cpInfo1.fCPInfo.firstLbid = startLbid;
+                ExtCPInfoList cpinfoList1;
                 cpinfoList1.push_back(cpInfo1);
                 rc = BRMWrapper::getInstance()->setExtentsMaxMin(cpinfoList1);
 
@@ -1202,8 +1145,8 @@ int ColumnOp::fillColumn(const TxnID& txnid, Column& column, Column& refCol, voi
                     return rc;
             }
 
-            BRM::CPInfoList_t cpinfoList;
-            cpInfo.firstLbid = startLbid;
+            ExtCPInfoList cpinfoList;
+            cpInfo.fCPInfo.firstLbid = startLbid;
             cpinfoList.push_back(cpInfo);
             rc = BRMWrapper::getInstance()->setExtentsMaxMin(cpinfoList);
 

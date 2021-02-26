@@ -52,16 +52,35 @@ class DbFileOp;
 /** @brief Extended CPInfo - with type handler for all type-related information */
 struct ExtCPInfo
 {
-    datatypes::TypeHandler* fTypeHandler;
-    BRM::CPInfo  fCPInfo;
+    execplan::CalpontSystemCatalog::ColDataType fColType;
+    int                                         fColWidth;
+    BRM::CPInfo                                 fCPInfo;
+    ExtCPInfo(execplan::CalpontSystemCatalog::ColDataType colType, int colWidth)
+        : fColType(colType), fColWidth(colWidth)
+    {
+        fCPInfo.isBinaryColumn = colWidth > 8;
+    }
     void toInvalid()
     {
-        aaaa;
+        auto mm = datatypes::MinMaxInfo::invalidRange(fColType);
+        fCPInfo.max = mm.max;
+	fCPInfo.min = mm.min;
+	fCPInfo.bigMax = mm.int128Max;
+	fCPInfo.bigMin = mm.int128Min;
     }
 
     bool isValid()
     {
-        return false;
+        datatypes::MinMaxInfo mm;
+	mm.max = fCPInfo.max;
+	mm.min = fCPInfo.min;
+	mm.int128Max = fCPInfo.bigMax;
+	mm.int128Min = fCPInfo.bigMin;
+	return datatypes::MinMaxInfo::isRangeInvalid(mm, fColType, fColWidth);
+    }
+    bool isBinaryColumn()
+    {
+        return fCPInfo.isBinaryColumn;
     }
 };
 typedef std::vector<ExtCPInfo> ExtCPInfoList;
