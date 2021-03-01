@@ -621,7 +621,7 @@ public:
   {
     MinMaxInfo tmp;
     tmp.min = std::numeric_limits<int64_t>::max();
-    tmp.min = std::numeric_limits<int64_t>::min();
+    tmp.max = std::numeric_limits<int64_t>::min();
     tmp.int128Max = datatypes::minInt128;
     tmp.int128Min = datatypes::maxInt128;
     return tmp;
@@ -631,7 +631,7 @@ public:
   {
     MinMaxInfo tmp;
     tmp.min = static_cast<int64_t>(std::numeric_limits<uint64_t>::max());
-    tmp.min = static_cast<int64_t>(std::numeric_limits<uint64_t>::min());
+    tmp.max = static_cast<int64_t>(std::numeric_limits<uint64_t>::min());
     tmp.int128Max = static_cast<int128_t>(datatypes::minUInt128);
     tmp.int128Min = static_cast<int128_t>(datatypes::maxUInt128);
     return tmp;

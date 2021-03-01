@@ -217,7 +217,7 @@ struct CPMaxMin
     bool isUnsignedColumn;
 
     /** @brief Set CPMaxMin into "invalid range" value.  It relies on the isBinaryColumn to be already set. */
-    void toInvalid() // XXX Maybe we better switch on the column type instead???
+    void toInvalid_() // XXX Maybe we better switch on the column type instead???
     {
         if (!isBinaryColumn)
         {
