@@ -693,6 +693,7 @@ inline int BRMWrapper::setExtentsMaxMin(const ExtCPInfoList& extCPInfoList)
     for (const auto& extCPInfo : extCPInfoList)
     {
         toSet.push_back(extCPInfo.fCPInfo);
+cout << "brm wrapper: setting cpInfo for LBID " << extCPInfo.fCPInfo.firstLbid << ", max " << extCPInfo.fCPInfo.max << ", min " << extCPInfo.fCPInfo.min << endl;
     }
     int rc = blockRsltnMgrPtr->setExtentsMaxMin(toSet);
     return getRC( rc, ERR_BRM_SET_EXTENTS_CP );

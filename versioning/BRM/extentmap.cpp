@@ -597,6 +597,10 @@ void ExtentMap::setExtentsMaxMin(const CPMaxMinMap_t& cpMap, bool firstNode, boo
 #endif
 
 
+for (it = cpMap.begin(); it != cpMap.end(); ++it)
+{
+cout << "extent map: setting cpInfo for LBID " << it->first << ", max " << it->second.max << ", min " << it->second.min << endl;
+}
 #ifdef BRM_INFO
 
     if (fDebug)
