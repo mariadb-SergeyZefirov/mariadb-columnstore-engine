@@ -4856,8 +4856,26 @@ void ExtentMap::getExtents(int OID, vector<struct EMEntry>& entries,
 
     releaseEMEntryTable(READ);
 
+for (const auto& entry : entries)
+{
+ostringstream os;
+os << "before sort: FirstLBID=" << entry.range.start <<
+" min=" << entry.cprange.loVam <<
+" max=" << entry.cprange.hiVal <<
+" seq=" << entry.cprange.sequenceNum;
+log(os.str(), logging::LOG_TYPE_DEBUG);
+}
     if (sorted)
         sort<vector<struct EMEntry>::iterator>(entries.begin(), entries.end());
+for (const auto& entry : entries)
+{
+ostringstream os;
+os << "after sort: FirstLBID=" << entry.range.start <<
+" min=" << entry.cprange.loVam <<
+" max=" << entry.cprange.hiVal <<
+" seq=" << entry.cprange.sequenceNum;
+log(os.str(), logging::LOG_TYPE_DEBUG);
+}
 }
 
 void ExtentMap::getExtents_dbroot(int OID, vector<struct EMEntry>& entries, const uint16_t dbroot)
