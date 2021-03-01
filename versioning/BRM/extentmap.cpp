@@ -4860,9 +4860,9 @@ for (const auto& entry : entries)
 {
 ostringstream os;
 os << "before sort: FirstLBID=" << entry.range.start <<
-" min=" << entry.cprange.loVam <<
-" max=" << entry.cprange.hiVal <<
-" seq=" << entry.cprange.sequenceNum;
+" min=" << entry.partition.cprange.loVal <<
+" max=" << entry.partition.cprange.hiVal <<
+" seq=" << entry.partition.cprange.sequenceNum;
 log(os.str(), logging::LOG_TYPE_DEBUG);
 }
     if (sorted)
@@ -4871,9 +4871,9 @@ for (const auto& entry : entries)
 {
 ostringstream os;
 os << "after sort: FirstLBID=" << entry.range.start <<
-" min=" << entry.cprange.loVam <<
-" max=" << entry.cprange.hiVal <<
-" seq=" << entry.cprange.sequenceNum;
+" min=" << entry.partition.cprange.loVal <<
+" max=" << entry.partition.cprange.hiVal <<
+" seq=" << entry.partition.cprange.sequenceNum;
 log(os.str(), logging::LOG_TYPE_DEBUG);
 }
 }
