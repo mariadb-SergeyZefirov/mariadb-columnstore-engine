@@ -69,7 +69,7 @@ struct ExtCPInfo
 	fCPInfo.bigMin = mm.int128Min;
     }
 
-    bool isValid()
+    bool isInvalid()
     {
         datatypes::MinMaxInfo mm;
 	mm.max = fCPInfo.max;

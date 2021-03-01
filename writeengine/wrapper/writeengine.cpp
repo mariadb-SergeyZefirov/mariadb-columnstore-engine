@@ -1158,7 +1158,7 @@ squeezeValidCPInfos(std::vector<ExtCPInfo>& cpInfos)
         return ;
     }
     for(i=0, j=0; i < cpInfos.size(); i++) {
-        if (cpInfos[i].isValid())
+        if (!cpInfos[i].isInvalid())
         {
             cpInfos[j] = cpInfos[i];
 	    j++;
