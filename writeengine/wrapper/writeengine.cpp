@@ -265,7 +265,7 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
     if (!canStartWithInvalidRange)
     {
         // check if range is invalid, we can't update it.
-	if (!maxMin->isValid())
+	if (maxMin->isInvalid())
         {
             return ;
         }
