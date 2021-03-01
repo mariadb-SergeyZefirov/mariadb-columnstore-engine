@@ -1380,9 +1380,13 @@ void SlaveComm::do_setExtentsMaxMin(ByteStream& msg)
         cpMaxMin.seqNum = tmp32;
 
         cpMap[lbid] = cpMaxMin;
+{
+ostringstream os;
+os << "   lbid=" << lbid << " max=" << cpMaxMin.max << " min=" <<
+                 cpMaxMin.min << " sequenceNum=" << cpMaxMin.seqNum;
+log(os.str());
+}
 
-cout << "   lbid=" << lbid << " max=" << cpMaxMin.max << " min=" <<
-                 cpMaxMin.min << " sequenceNum=" << cpMaxMin.seqNum << endl;
         if (printOnly)
             cout << "   lbid=" << lbid << " max=" << cpMaxMin.max << " min=" <<
                  cpMaxMin.min << " sequenceNum=" << cpMaxMin.seqNum << endl;
