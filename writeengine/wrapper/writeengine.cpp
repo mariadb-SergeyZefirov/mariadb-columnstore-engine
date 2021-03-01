@@ -1327,7 +1327,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 
 		cpInfo.toInvalid();
 
-                cpInfo.fCPInfo.seqNum = -1;
+                cpInfo.fCPInfo.seqNum = -2;
 
                 //mark the extents to invalid
                 cpInfo.fCPInfo.firstLbid = extents[i].startLbid;
@@ -1940,7 +1940,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                 if (cpInfo)
                 {
                     cpinfoList.push_back(*cpInfo);
-                    cpinfoList[cpinfoList.size() - 1].fCPInfo.seqNum = -1;
+                    cpinfoList[cpinfoList.size() - 1].fCPInfo.seqNum = -2;
                 }
             }
         }
@@ -2124,7 +2124,7 @@ int WriteEngineWrapper::insertColumnRecsBinary(const TxnID& txnid,
 
                 cpInfo.toInvalid();
 
-                cpInfo.fCPInfo.seqNum = -1;
+                cpInfo.fCPInfo.seqNum = -2;
 
                 //mark the extents to invalid
                 cpInfo.fCPInfo.firstLbid = extents[i].startLbid;
@@ -4560,7 +4560,7 @@ int WriteEngineWrapper::updateColumnRec(const TxnID& txnid,
         ExtCPInfoList infosToDrop = infosToUpdate;
 	for (auto& cpInfo : infosToDrop)
 	{
-            cpInfo.fCPInfo.seqNum = -1;
+            cpInfo.fCPInfo.seqNum = -2;
 	}
         rc = BRMWrapper::getInstance()->setExtentsMaxMin(infosToDrop);
 	squeezeValidCPInfos(infosToUpdate);
@@ -4629,7 +4629,7 @@ int WriteEngineWrapper::updateColumnRecs(const TxnID& txnid,
         if (cpInfoP)
         {
 	    auto tmp = *cpInfoP;
-	    tmp.fCPInfo.seqNum = -1;
+	    tmp.fCPInfo.seqNum = -2;
             bulkUpdateInfos.push_back(tmp);
         }
     }
