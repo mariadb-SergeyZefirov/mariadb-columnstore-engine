@@ -230,6 +230,20 @@ void WriteEngineWrapper::findSmallestColumn(uint32_t& colId, ColStructList colSt
     }
 }
 
+static int64_t
+encodeStringPrefix(const unsigned char* str, size_t len)
+{
+    int64_t acc = 0;
+    size_t i;
+    for (i = 0; i < 8; i++)
+    {
+        uint8_t byte = i < len ? str[i] : 0;
+	acc = (acc << 8) + byte;
+    }
+    acc += 1LL << 63;
+    return acc;
+}
+
 /** @brief Fetch values from arrays into VT-types references casting arrays to (element type) ET-typed arrays.
  *
  * There might be two arrays: one from which we write to buffer and one with old values written before.
@@ -367,6 +381,11 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
             maxMin->fromToChars();
         }
     }
+    if (colType == WR_TOKEN)
+    {
+        oldValArrayVoid = nullptr; // no old values for tokens, sadly.
+	valArrayVoid = (void*)maxMin->stringsPrefixes();
+    }
     size_t i;
     for (i = 0; i < totalOldRow; i++) {
         int64_t value = 0, oldValue = 0;
@@ -408,6 +427,7 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
                 fetchNewOldValues<uint64_t, unsigned int>(uvalue, oldUValue, valArrayVoid, oldValArrayVoid, i, totalNewRow);
                 break;
             }
+	    case WR_TOKEN:
             case WR_LONGLONG:
             {
                 fetchNewOldValues<int64_t, int64_t>(value, oldValue, valArrayVoid, oldValArrayVoid, i, totalNewRow);
@@ -416,6 +436,7 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
             case WR_ULONGLONG:
             {
                 fetchNewOldValues<uint64_t, uint64_t>(uvalue, oldUValue, valArrayVoid, oldValArrayVoid, i, totalNewRow);
+idblog("uvalue: " << uvalue);
                 break;
             }
             case WR_BINARY:
@@ -446,10 +467,12 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
         }
         else if (isUnsigned)
         {
+if (colType == WR_TOKEN) { idblog("before update: max " << maxMin->fCPInfo.max << ", min " << maxMin->fCPInfo.min); }
             if (updateRangeCheckForInvalidity(maxMin, uvalue, oldUValue, valArrayVoid, oldValArrayVoid))
             {
                 return ;
             }
+if (colType == WR_TOKEN) { idblog("after update: max " << maxMin->fCPInfo.max << ", min " << maxMin->fCPInfo.min); }
         }
         else
         {
@@ -549,6 +572,7 @@ void WriteEngineWrapper::convertValue(const execplan::CalpontSystemCatalog::ColT
                 curStr = curStr.substr(0, MAX_COLUMN_BOUNDARY);
 
             memcpy(value, curStr.c_str(), curStr.length());
+
             break;
 
         case WriteEngine::WR_FLOAT:
@@ -1210,6 +1234,10 @@ getCPInfoToUpdateForUpdatableType(const ColStruct& colStruct, ExtCPInfo* current
 {
     if (colStruct.tokenFlag)
     {
+        if (currentCPInfo && currentCPInfo->hasStringsPrefixes())
+        {
+            return currentCPInfo;
+        }
         return nullptr;
     }
     switch(colStruct.colType)
@@ -1728,10 +1756,12 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 
             for (uint32_t rows = 0; rows < (totalRow - rowsLeft); rows++)
             {
+                uint64_t strPrefix;
                 if (dctStr_iter->length() == 0)
                 {
                     Token nullToken;
                     col_iter->data = nullToken;
+		    strPrefix = 0;
                 }
                 else
                 {
@@ -1741,6 +1771,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                     DctnryTuple dctTuple;
                     dctTuple.sigValue = (unsigned char*)dctStr_iter->c_str();
                     dctTuple.sigSize = dctStr_iter->length();
+                    strPrefix = encodeStringPrefix(dctTuple.sigValue, dctTuple.sigSize);
                     dctTuple.isNull = false;
                     rc = tokenize(txnid, dctTuple, dctnryStructList[i].fCompressionType);
 
@@ -1755,6 +1786,8 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 #endif
                     col_iter->data = dctTuple.token;
                 }
+
+                maxMins[i].fSplitMaxMinInfo[0].addStringPrefix(strPrefix);
 
                 dctStr_iter++;
                 col_iter++;
@@ -1783,10 +1816,12 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 
                 for (uint32_t rows = 0; rows < rowsLeft; rows++)
                 {
+                    int64_t strPrefix;
                     if (dctStr_iter->length() == 0)
                     {
                         Token nullToken;
                         col_iter->data = nullToken;
+		        strPrefix = 0;
                     }
                     else
                     {
@@ -1796,6 +1831,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                         DctnryTuple dctTuple;
                         dctTuple.sigValue = (unsigned char*)dctStr_iter->c_str();
                         dctTuple.sigSize = dctStr_iter->length();
+                        strPrefix = encodeStringPrefix(dctTuple.sigValue, dctTuple.sigSize);
                         dctTuple.isNull = false;
                         rc = tokenize(txnid, dctTuple, newDctnryStructList[i].fCompressionType);
 
@@ -1811,6 +1847,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                         col_iter->data = dctTuple.token;
                     }
 
+                    maxMins[i].fSplitMaxMinInfo[1].addStringPrefix(strPrefix);
                     dctStr_iter++;
                     col_iter++;
                 }
@@ -1977,7 +2014,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 
         if (isFirstBatchPm && (totalRow == rowsLeft))
         {
-            // in this particular case we already marked extents as invalid up there.
+            // in this particular case we already marked extents as invalid above.
         }
         else
         {

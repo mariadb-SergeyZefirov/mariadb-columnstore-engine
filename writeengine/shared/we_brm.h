@@ -25,6 +25,7 @@
 #define _WE_BRM_H_
 
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <boost/thread.hpp>
 #include <boost/thread/tss.hpp>
@@ -50,17 +51,26 @@ namespace WriteEngine
 // forward reference
 class DbFileOp;
 
-/** @brief Extended CPInfo - with type handler for all type-related information */
+/** @brief Extended CPInfo - with all type-related information and associated range data */
 struct ExtCPInfo
 {
     execplan::CalpontSystemCatalog::ColDataType fColType;
     int                                         fColWidth;
     BRM::CPInfo                                 fCPInfo;
+    std::vector<int64_t>*                       fStringsPrefixes; // not smart due to lack of support in c++ standard we use.
     ExtCPInfo(execplan::CalpontSystemCatalog::ColDataType colType, int colWidth)
-        : fColType(colType), fColWidth(colWidth)
+        : fColType(colType), fColWidth(colWidth), fStringsPrefixes(nullptr)
     {
         fCPInfo.isBinaryColumn = (unsigned int)colWidth > datatypes::MAXLEGACYWIDTH;
     }
+    ~ExtCPInfo()
+    {
+        if (fStringsPrefixes)
+        {
+            delete fStringsPrefixes;
+        }
+    }
+
     void toInvalid()
     {
         auto mm = datatypes::MinMaxInfo::invalidRange(fColType);
@@ -69,7 +79,22 @@ struct ExtCPInfo
 	fCPInfo.bigMax = mm.int128Max;
 	fCPInfo.bigMin = mm.int128Min;
     }
-
+    void addStringPrefix(int64_t strPrefix)
+    {
+        if (!fStringsPrefixes)
+	{
+            fStringsPrefixes = new std::vector<int64_t>();
+	}
+	fStringsPrefixes->push_back(strPrefix);
+    }
+    bool hasStringsPrefixes()
+    {
+        return fStringsPrefixes != nullptr;
+    }
+    int64_t* stringsPrefixes()
+    {
+        return fStringsPrefixes != nullptr ? fStringsPrefixes->data() : nullptr;
+    }
     bool isInvalid()
     {
         datatypes::MinMaxInfo mm;

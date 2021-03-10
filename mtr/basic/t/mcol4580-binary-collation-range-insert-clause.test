@@ -1,0 +1,8 @@
+--disable_warnings
+DROP DATABASE IF EXISTS MCOL4580;
+--enable_warnings;
+CREATE DATABASE MCOL4580;
+CREATE TABLE t(d TEXT) ENGINE=COLUMNSTORE;
+INSERT INTO t(d) VALUES ('b'),('b'),('b');
+SELECT min_value, max_value FROM information_schema.columnstore_extents;
+

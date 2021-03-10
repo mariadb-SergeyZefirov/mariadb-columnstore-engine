@@ -277,6 +277,8 @@ void pDictionaryScan::addFilter(int8_t COP, const string& value)
 //	fFilterString.append(s, value.size());
     fFilterCount++;
 
+idblog("Add filter with COP " << ((int)COP) << ", value '" << value << "'");
+
     if (fFilterCount == 1)
     {
         fCOP1 = COP;

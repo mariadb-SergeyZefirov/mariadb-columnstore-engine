@@ -554,7 +554,7 @@ bool LBIDList::CasualPartitionDataType(const CalpontSystemCatalog::ColDataType t
         case CalpontSystemCatalog::VARCHAR:
         case CalpontSystemCatalog::BLOB:
         case CalpontSystemCatalog::TEXT:
-            return size < 8;
+            return size <= 8;
 
         case CalpontSystemCatalog::TINYINT:
         case CalpontSystemCatalog::SMALLINT:
