@@ -780,6 +780,7 @@ void TupleBPS::storeCasualPartitionInfo(const bool estimateRowCounts)
     vector<ColumnCommandJL*> cpColVec;
     vector<SP_LBIDList> lbidListVec;
     ColumnCommandJL* colCmd = 0;
+    bool defaultScanFlag = true;
 
     // @bug 2123.  We call this earlier in the process for the hash join estimation process now.  Return if we've already done the work.
     if (fCPEvaluated)
@@ -790,7 +791,9 @@ void TupleBPS::storeCasualPartitionInfo(const bool estimateRowCounts)
     fCPEvaluated = true;
 
     if (colCmdVec.size() == 0)
-        return;
+    {
+        defaultScanFlag = false; // no reason to scan if there are no commands.
+    }
 
     for (uint32_t i = 0; i < colCmdVec.size(); i++)
     {
@@ -817,15 +820,17 @@ void TupleBPS::storeCasualPartitionInfo(const bool estimateRowCounts)
 
 
     if (cpColVec.size() == 0)
-        return;
+    {
+        defaultScanFlag = false; // no reason to scan if there are no predicates to evaluate.
+    }
 
     const bool ignoreCP = ((fTraceFlags & CalpontSelectExecutionPlan::IGNORE_CP) != 0);
 
     for (uint32_t idx = 0; idx < numExtents; idx++)
     {
-        scanFlags[idx] = true;
+        scanFlags[idx] = defaultScanFlag;
 
-        for (uint32_t i = 0; i < cpColVec.size(); i++)
+        for (uint32_t i = 0; scanFlags[idx] && i < cpColVec.size(); i++)
         {
             colCmd = cpColVec[i];
             const EMEntry& extent = colCmd->getExtents()[idx];
@@ -841,10 +846,6 @@ void TupleBPS::storeCasualPartitionInfo(const bool estimateRowCounts)
                                   colCmd->getBOP())
                              );
 
-            if (!scanFlags[idx])
-            {
-                break;
-            }
         }
     }
 
