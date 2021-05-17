@@ -837,7 +837,9 @@ void TupleBPS::storeCasualPartitionInfo(const bool estimateRowCounts)
 
             /* If any column filter eliminates an extent, it doesn't get scanned */
             scanFlags[idx] = scanFlags[idx] &&
+                             (extent.colWid <= 16) && // XXX: change to named constant.
                              (ignoreCP || extent.partition.cprange.isValid != BRM::CP_VALID ||
+                              colCmd->getColType().colWidth != extent.colWid ||
                               lbidListVec[i]->CasualPartitionPredicate(
                                   extent.partition.cprange,
                                   &(colCmd->getFilterString()),
