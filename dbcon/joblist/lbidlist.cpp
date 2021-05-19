@@ -750,7 +750,6 @@ bool LBIDList::CasualPartitionPredicate(const BRM::EMCasualPartition_t& cpRange,
     int64_t value = 0;
     int128_t bigValue = 0;
     bool bIsUnsigned = datatypes::isUnsigned(ct.colDataType);
-    bool bIsChar = datatypes::isCharType(ct.colDataType);
 
     for (int i = 0; i < NOPS; i++)
     {
