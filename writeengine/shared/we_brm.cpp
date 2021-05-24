@@ -1387,6 +1387,7 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
         if (rc != 0 )
         {
             BRM::errString(rc, errorMsg);
+errorMsg = errorMsg + " (after dmlLockLBIDRanges)";
             goto cleanup;
         }
 
@@ -1408,6 +1409,7 @@ int BRMWrapper::rollBackBlocks(const VER_t transID, int sessionId)
         if (rc != 0 )
         {
             BRM::errString(rc, errorMsg);
+errorMsg = errorMsg + " (after dmlReleaseLBIDRanges)";
             goto cleanup;
         }
 
