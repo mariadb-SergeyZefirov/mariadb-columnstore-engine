@@ -184,7 +184,10 @@ CommandPackageProcessor::processPackage(dmlpackage::CalpontDMLPackage& cpackage)
                         weRc = commitBatchAutoOnTransaction(uniqueId, txnid, cpackage.getTableOid(), errorMsg);
 
                         if (weRc != 0)
-                            BRM::errString(weRc, errorMsg + " (after commitBatchAutoOnTransaction)");
+			{
+                            BRM::errString(weRc, errorMsg);
+			    errorMsg = errorMsg + " (after commitBatchAutoOnTransaction)";
+			}
 
                         cpInvalidated = true;
                     }
@@ -193,7 +196,10 @@ CommandPackageProcessor::processPackage(dmlpackage::CalpontDMLPackage& cpackage)
                         weRc = fDbrm->vbCommit(txnid.id);
 
                         if (weRc != 0)
-                            BRM::errString(weRc, errorMsg + " (after vbCommit)");
+			{
+                            BRM::errString(weRc, errorMsg);
+			    errorMsg = errorMsg + " (after vbCommit)";
+			}
 
                         //weRc = commitBatchAutoOffTransaction(uniqueId, txnid, cpackage.getTableOid(), errorMsg);
                     }
