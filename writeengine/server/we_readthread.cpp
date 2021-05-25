@@ -130,6 +130,7 @@ void DmlReadThread::operator()()
 
                 case WE_SVR_COMMIT_BATCH_AUTO_ON:
                 {
+		    idblog("WE_SVR_COMMIT_BATCH_AUTO_ON has been received");
                     rc = fWeDMLprocessor->commitBatchAutoOn(ibs, errMsg);
 		    idblog("rc " << rc);
                     break;
