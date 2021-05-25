@@ -415,6 +415,7 @@ int DMLPackageProcessor::commitBatchAutoOnTransaction(uint64_t uniqueId, BRM::Tx
     bytestream << tableOid;
     bytestream << fSessionID;
 
+
     uint32_t msgRecived = 0;
     fWEClient->write_to_all(bytestream);
     boost::shared_ptr<messageqcpp::ByteStream> bsIn;
@@ -423,6 +424,8 @@ int DMLPackageProcessor::commitBatchAutoOnTransaction(uint64_t uniqueId, BRM::Tx
     ByteStream::byte tmp8;
     typedef std::vector<BRM::BulkSetHWMArg> BulkSetHWMArgs;
     std::vector<BulkSetHWMArgs> hwmArgsAllPms;
+
+idblog("WE_SVR_COMMIT_BATCH_AUTO_ON has been broadcasted");
 
     while (1)
     {
@@ -444,6 +447,7 @@ int DMLPackageProcessor::commitBatchAutoOnTransaction(uint64_t uniqueId, BRM::Tx
 
             if (rc != 0)
             {
+		    idblog("got rc " << ((int) rc));
                 *bsIn >> errorMsg;
                 fWEClient->removeQueue(uniqueId);
                 break;
