@@ -406,6 +406,7 @@ void DmlReadThread::operator()()
         }
         catch (std::exception& ex)
         {
+		idblog("catch of std::exception");
             logging::LoggingID logid(19, 0, 0);
             logging::Message::Args args;
             logging::Message msg(1);
@@ -419,6 +420,7 @@ void DmlReadThread::operator()()
         }
         catch (...)
         {
+		idblog("wildcard catch");
             logging::LoggingID logid(19, 0, 0);
             logging::Message::Args args;
             logging::Message msg(1);
