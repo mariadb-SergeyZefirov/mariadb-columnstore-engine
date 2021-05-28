@@ -136,6 +136,7 @@ void added_a_pm(int)
 int ServiceWriteEngine::setupResources()
 {
 #ifndef _MSC_VER
+#if 0 // why, oh why do we set hard limit and check for equality, not equal or greater?
     struct rlimit rlim;
 
     if (getrlimit(RLIMIT_NOFILE, &rlim) != 0)
@@ -159,7 +160,7 @@ int ServiceWriteEngine::setupResources()
     {
         return -4;
     }
-
+#endif
 #endif
     return 0;
 }
