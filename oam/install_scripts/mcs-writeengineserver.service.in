@@ -13,7 +13,7 @@ Group=@DEFAULT_GROUP@
 LimitNOFILE=65536
 LimitNPROC=65536
 
-ExecStart=/usr/bin/env bash -c "LD_PRELOAD=$(ldconfig -p | grep -m1 libjemalloc | awk '{print $1}') exec valgrind --tool=memcheck --trace-children=yes --suppressions=/dev/null --num-callers=8 --memcheck:leak-check=full --memcheck:leak-resolution=high --log-file=/var/log/mariadb/columnstore/valgrind-wes.log @ENGINE_BINDIR@/WriteEngineServer"
+ExecStart=/usr/bin/env bash -c "LD_PRELOAD=$(ldconfig -p | grep -m1 libjemalloc | awk '{print $1}') exec @ENGINE_BINDIR@/WriteEngineServer"
 
 Restart=on-failure
 TimeoutStopSec=20
