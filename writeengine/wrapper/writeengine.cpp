@@ -436,7 +436,6 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
             case WR_ULONGLONG:
             {
                 fetchNewOldValues<uint64_t, uint64_t>(uvalue, oldUValue, valArrayVoid, oldValArrayVoid, i, totalNewRow);
-idblog("uvalue: " << uvalue);
                 break;
             }
             case WR_BINARY:
@@ -467,12 +466,10 @@ idblog("uvalue: " << uvalue);
         }
         else if (isUnsigned)
         {
-if (colType == WR_TOKEN) { idblog("before update: max " << maxMin->fCPInfo.max << ", min " << maxMin->fCPInfo.min); }
             if (updateRangeCheckForInvalidity(maxMin, uvalue, oldUValue, valArrayVoid, oldValArrayVoid))
             {
                 return ;
             }
-if (colType == WR_TOKEN) { idblog("after update: max " << maxMin->fCPInfo.max << ", min " << maxMin->fCPInfo.min); }
         }
         else
         {

@@ -130,9 +130,7 @@ void DmlReadThread::operator()()
 
                 case WE_SVR_COMMIT_BATCH_AUTO_ON:
                 {
-		    idblog("WE_SVR_COMMIT_BATCH_AUTO_ON has been received");
                     rc = fWeDMLprocessor->commitBatchAutoOn(ibs, errMsg);
-		    idblog("rc " << rc);
                     break;
                 }
 
@@ -406,7 +404,6 @@ void DmlReadThread::operator()()
         }
         catch (std::exception& ex)
         {
-		idblog("catch of std::exception");
             logging::LoggingID logid(19, 0, 0);
             logging::Message::Args args;
             logging::Message msg(1);
@@ -420,7 +417,6 @@ void DmlReadThread::operator()()
         }
         catch (...)
         {
-		idblog("wildcard catch");
             logging::LoggingID logid(19, 0, 0);
             logging::Message::Args args;
             logging::Message msg(1);

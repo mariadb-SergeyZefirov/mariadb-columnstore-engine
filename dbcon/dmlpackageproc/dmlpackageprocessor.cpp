@@ -425,8 +425,6 @@ int DMLPackageProcessor::commitBatchAutoOnTransaction(uint64_t uniqueId, BRM::Tx
     typedef std::vector<BRM::BulkSetHWMArg> BulkSetHWMArgs;
     std::vector<BulkSetHWMArgs> hwmArgsAllPms;
 
-idblog("WE_SVR_COMMIT_BATCH_AUTO_ON has been broadcasted");
-
     while (1)
     {
         if (msgRecived == fWEClient->getPmCount())
@@ -447,7 +445,6 @@ idblog("WE_SVR_COMMIT_BATCH_AUTO_ON has been broadcasted");
 
             if (rc != 0)
             {
-		    idblog("got rc " << ((int) rc));
                 *bsIn >> errorMsg;
                 fWEClient->removeQueue(uniqueId);
                 break;
@@ -466,7 +463,6 @@ idblog("WE_SVR_COMMIT_BATCH_AUTO_ON has been broadcasted");
         }
     }
 
-idblog("got rc " << ((int) rc) << " at line " << ((int)__LINE__));
     if (rc != 0)
         return rc;
 
@@ -494,7 +490,6 @@ idblog("got rc " << ((int) rc) << " at line " << ((int)__LINE__));
 
     std::vector<BRM::CPInfoMerge>  mergeCPDataArgs;
     rc = fDbrm->bulkSetHWMAndCP(allHwm, cpInfos, mergeCPDataArgs, txnID.id);
-idblog("got rc " << ((int) rc) << " at line " << ((int)__LINE__));
     fDbrm->takeSnapshot();
     //Set tablelock to rollforward remove meta files
 
@@ -525,7 +520,6 @@ idblog("got rc " << ((int) rc) << " at line " << ((int)__LINE__));
     bytestream << tableOid;
     msgRecived = 0;
     fWEClient->write_to_all(bytestream);
-idblog("WE_SVR_BATCH_AUTOON_REMOVE_META has been broadcasted");
 
     while (1)
     {
