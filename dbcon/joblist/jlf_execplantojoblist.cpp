@@ -1603,19 +1603,19 @@ bool optimizeIdbPatitionSimpleFilter(SimpleFilter* sf, JobStepVector& jsv, JobIn
     return true;
 }
 
-static int64_t
-encodeStringPrefix(const unsigned char* str, size_t len)
-{
-    int64_t acc = 0;
-    size_t i;
-    for (i = 0; i < 8; i++)
-    {
-        uint8_t byte = i < len ? str[i] : 0;
-        acc = (acc << 8) + byte;
-    }
-    acc += 1LL << 63;
-    return acc;
-}
+//static int64_t
+//encodeStringPrefix(const unsigned char* str, size_t len)
+//{
+//    int64_t acc = 0;
+//    size_t i;
+//    for (i = 0; i < 8; i++)
+//    {
+//        uint8_t byte = i < len ? str[i] : 0;
+//        acc = (acc << 8) + byte;
+//    }
+//    acc += 1LL << 63;
+//    return acc;
+//}
 
 const JobStepVector doSimpleFilter(SimpleFilter* sf, JobInfo& jobInfo)
 {
@@ -1712,8 +1712,8 @@ const JobStepVector doSimpleFilter(SimpleFilter* sf, JobInfo& jobInfo)
                 pds->addFilter(cop, constval);
 
 		// add the filter to the TOKEN column.
-		int64_t prefixAsInt = encodeStringPrefix((const uint8_t*)constval.c_str(), constval.length());
-		pcs->addFilter(cop, prefixAsInt);
+//		int64_t prefixAsInt = encodeStringPrefix((const uint8_t*)constval.c_str(), constval.length());
+//		pcs->addFilter(cop, prefixAsInt);
 
                 // data list for pcolstep output
                 AnyDataListSPtr spdl1(new AnyDataList());
