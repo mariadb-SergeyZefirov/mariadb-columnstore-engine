@@ -230,7 +230,7 @@ void WriteEngineWrapper::findSmallestColumn(uint32_t& colId, ColStructList colSt
     }
 }
 
-#if 0
+#if 01
 static int64_t
 encodeStringPrefix(const unsigned char* str, size_t len)
 {
@@ -1755,12 +1755,12 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 
             for (uint32_t rows = 0; rows < (totalRow - rowsLeft); rows++)
             {
-                //int64_t strPrefix;
+                int64_t strPrefix;
                 if (dctStr_iter->length() == 0)
                 {
                     Token nullToken;
                     col_iter->data = nullToken;
-//		    strPrefix = 0;
+		    strPrefix = 0;
                 }
                 else
                 {
@@ -1770,7 +1770,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                     DctnryTuple dctTuple;
                     dctTuple.sigValue = (unsigned char*)dctStr_iter->c_str();
                     dctTuple.sigSize = dctStr_iter->length();
-//                    strPrefix = encodeStringPrefix(dctTuple.sigValue, dctTuple.sigSize);
+                    strPrefix = encodeStringPrefix(dctTuple.sigValue, dctTuple.sigSize);
                     dctTuple.isNull = false;
                     rc = tokenize(txnid, dctTuple, dctnryStructList[i].fCompressionType);
 
@@ -1786,7 +1786,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                     col_iter->data = dctTuple.token;
                 }
 
-//                maxMins[i].fSplitMaxMinInfo[0].addStringPrefix(strPrefix);
+                maxMins[i].fSplitMaxMinInfo[0].addStringPrefix(strPrefix);
 
                 dctStr_iter++;
                 col_iter++;
@@ -1830,7 +1830,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                         DctnryTuple dctTuple;
                         dctTuple.sigValue = (unsigned char*)dctStr_iter->c_str();
                         dctTuple.sigSize = dctStr_iter->length();
-//                        strPrefix = encodeStringPrefix(dctTuple.sigValue, dctTuple.sigSize);
+                        strPrefix = encodeStringPrefix(dctTuple.sigValue, dctTuple.sigSize);
                         dctTuple.isNull = false;
                         rc = tokenize(txnid, dctTuple, newDctnryStructList[i].fCompressionType);
 
