@@ -1233,10 +1233,10 @@ getCPInfoToUpdateForUpdatableType(const ColStruct& colStruct, ExtCPInfo* current
 {
     if (colStruct.tokenFlag)
     {
-//        if (currentCPInfo && currentCPInfo->hasStringsPrefixes())
-//        {
-//            return currentCPInfo;
-//        }
+        if (currentCPInfo && currentCPInfo->hasStringsPrefixes())
+        {
+            return currentCPInfo;
+        }
         return nullptr;
     }
     switch(colStruct.colType)
