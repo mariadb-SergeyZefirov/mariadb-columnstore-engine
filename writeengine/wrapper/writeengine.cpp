@@ -1815,12 +1815,12 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
 
                 for (uint32_t rows = 0; rows < rowsLeft; rows++)
                 {
-                    //int64_t strPrefix;
+                    int64_t strPrefix;
                     if (dctStr_iter->length() == 0)
                     {
                         Token nullToken;
                         col_iter->data = nullToken;
-//		        strPrefix = 0;
+		        strPrefix = 0;
                     }
                     else
                     {
@@ -1846,7 +1846,7 @@ int WriteEngineWrapper::insertColumnRecs(const TxnID& txnid,
                         col_iter->data = dctTuple.token;
                     }
 
-//                    maxMins[i].fSplitMaxMinInfo[1].addStringPrefix(strPrefix);
+                    maxMins[i].fSplitMaxMinInfo[1].addStringPrefix(strPrefix);
                     dctStr_iter++;
                     col_iter++;
                 }
