@@ -554,7 +554,7 @@ bool LBIDList::CasualPartitionDataType(const CalpontSystemCatalog::ColDataType t
         case CalpontSystemCatalog::VARCHAR:
         case CalpontSystemCatalog::BLOB:
         case CalpontSystemCatalog::TEXT:
-            return size <= 8;
+            return size < 8;
 
         case CalpontSystemCatalog::TINYINT:
         case CalpontSystemCatalog::SMALLINT:
@@ -851,7 +851,7 @@ bool LBIDList::CasualPartitionPredicate(const BRM::EMCasualPartition_t& cpRange,
             continue;
         }
 
-/*        if (bIsChar)
+        if (bIsChar)
         {
             datatypes::Charset cs(ct.charsetNumber);
             utils::ConstString sMin((const char *) &cpRange.loVal, ct.colWidth);
@@ -862,7 +862,7 @@ bool LBIDList::CasualPartitionPredicate(const BRM::EMCasualPartition_t& cpRange,
                                   sVal.rtrimZero(), op, lcf);
 // 			cout << "scan=" << (uint32_t) scan << endl;
         }
-        else*/ if (bIsUnsigned)
+        else if (bIsUnsigned)
         {
             scan = compareVal(static_cast<uint64_t>(cpRange.loVal), static_cast<uint64_t>(cpRange.hiVal), static_cast<uint64_t>(value), op, lcf);
         }
