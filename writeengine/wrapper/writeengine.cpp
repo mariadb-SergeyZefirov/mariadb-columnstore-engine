@@ -429,7 +429,7 @@ void WriteEngineWrapper::updateMaxMinRange(const size_t totalNewRow, const size_
                 fetchNewOldValues<uint64_t, unsigned int>(uvalue, oldUValue, valArrayVoid, oldValArrayVoid, i, totalNewRow);
                 break;
             }
-	    //case WR_TOKEN:
+	    case WR_TOKEN:
             case WR_LONGLONG:
             {
                 fetchNewOldValues<int64_t, int64_t>(value, oldValue, valArrayVoid, oldValArrayVoid, i, totalNewRow);
