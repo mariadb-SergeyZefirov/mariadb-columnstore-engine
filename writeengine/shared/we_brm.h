@@ -86,7 +86,7 @@ struct ExtCPInfo
     }
     int64_t* stringsPrefixes()
     {
-        return hasStringPrefixes() ? fStringsPrefixes->data() : nullptr;
+        return hasStringsPrefixes() ? fStringsPrefixes->data() : nullptr;
     }
     bool isInvalid()
     {
