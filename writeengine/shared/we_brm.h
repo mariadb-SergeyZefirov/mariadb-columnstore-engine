@@ -57,18 +57,11 @@ struct ExtCPInfo
     execplan::CalpontSystemCatalog::ColDataType fColType;
     int                                         fColWidth;
     BRM::CPInfo                                 fCPInfo;
-    std::vector<int64_t>*                       fStringsPrefixes; // not smart due to lack of support in c++ standard we use.
+    std::shared_ptr<std::vector<int64_t>>       fStringsPrefixes;
     ExtCPInfo(execplan::CalpontSystemCatalog::ColDataType colType, int colWidth)
-        : fColType(colType), fColWidth(colWidth), fStringsPrefixes(nullptr)
+        : fColType(colType), fColWidth(colWidth)
     {
         fCPInfo.isBinaryColumn = (unsigned int)colWidth > datatypes::MAXLEGACYWIDTH;
-    }
-    ~ExtCPInfo()
-    {
-        if (fStringsPrefixes)
-        {
-            delete fStringsPrefixes;
-        }
     }
 
     void toInvalid()
@@ -83,17 +76,17 @@ struct ExtCPInfo
     {
         if (!fStringsPrefixes)
 	{
-            fStringsPrefixes = new std::vector<int64_t>();
+            fStringsPrefixes.reset(new std::vector<int64_t>());
 	}
 	fStringsPrefixes->push_back(strPrefix);
     }
     bool hasStringsPrefixes()
     {
-        return fStringsPrefixes != nullptr;
+        return fStringsPrefixes.get() != nullptr;
     }
     int64_t* stringsPrefixes()
     {
-        return fStringsPrefixes != nullptr ? fStringsPrefixes->data() : nullptr;
+        return hasStringPrefixes() ? fStringsPrefixes->data() : nullptr;
     }
     bool isInvalid()
     {
