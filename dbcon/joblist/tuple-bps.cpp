@@ -821,7 +821,7 @@ void TupleBPS::storeCasualPartitionInfo(const bool estimateRowCounts)
 
     if (cpColVec.size() == 0)
     {
-        defaultScanFlag = false; // no reason to scan if there are no predicates to evaluate.
+        defaultScanFlag = true; // no reason to scan if there are no predicates to evaluate.
     }
 
     const bool ignoreCP = ((fTraceFlags & CalpontSelectExecutionPlan::IGNORE_CP) != 0);
