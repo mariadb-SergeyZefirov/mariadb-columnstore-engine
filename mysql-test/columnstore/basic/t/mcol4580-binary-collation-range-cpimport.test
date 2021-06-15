@@ -1,6 +1,6 @@
 --disable_warnings
 DROP DATABASE IF EXISTS MCOL4580;
---enable_warnings;
+--enable_warnings
 CREATE DATABASE MCOL4580;
 CREATE TABLE t(d TEXT) ENGINE=COLUMNSTORE;
 LOAD DATA LOCAL infile './suite/columnstore/std_data/small-table-with-bbbs.dat' INTO TABLE t FIELDS TERMINATED BY '|';
