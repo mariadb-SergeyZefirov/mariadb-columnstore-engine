@@ -1712,8 +1712,10 @@ const JobStepVector doSimpleFilter(SimpleFilter* sf, JobInfo& jobInfo)
                 pds->addFilter(cop, constval);
 
 		// add the filter to the TOKEN column.
-		int64_t prefixAsInt = encodeStringPrefix((const uint8_t*)constval.c_str(), constval.length());
-		pcs->addFilter(cop, prefixAsInt);
+		if (cop != COMPARE_LIKE && cop != COMPARE_NLIKE) {
+                    int64_t prefixAsInt = encodeStringPrefix((const uint8_t*)constval.c_str(), constval.length());
+                    pcs->addFilter(cop, prefixAsInt);
+                }
 
                 // data list for pcolstep output
                 AnyDataListSPtr spdl1(new AnyDataList());
