@@ -80,19 +80,19 @@ NULL	Character
 NULL	Integer
 SELECT t1_char, 'Character' AS Table1 FROM t1 UNION SELECT t2_int, 'Integer' AS Table2 FROM t2 ORDER BY 2 ASC;
 t1_char	Table1
-NULL	Character
 aaa	Character
 ccc	Character
 ddd	Character
 eee	Character
-5	Integer
-6	Integer
-7	Integer
+NULL	Character
 9	Integer
 11	Integer
 NULL	Integer
 1	Integer
 3	Integer
+5	Integer
+6	Integer
+7	Integer
 SELECT t1_char, 'Character' AS Table1 FROM t1 UNION SELECT t2_int, 'Integer' AS Table2 FROM t2 ORDER BY 1, 2;
 t1_char	Table1
 NULL	Character
@@ -110,8 +110,8 @@ ddd	Character
 eee	Character
 SELECT t1_char, t1_int FROM t1 UNION SELECT t2_char, t2_int FROM t2 ORDER BY 1;
 t1_char	t1_int
-NULL	NULL
 NULL	6
+NULL	NULL
 aaa	1
 aaa	2
 aaa	5
@@ -239,26 +239,26 @@ ccc	Character
 2	Integer
 1	Integer
 NULL	Character
-NULL	Integer
 NULL	Character
+NULL	Integer
 SELECT t1_char, 'Character' AS Table1 FROM t1 UNION ALL SELECT t2_int, 'Integer' AS Table2 FROM t2 ORDER BY 2 ASC;
 t1_char	Table1
-NULL	Character
-aaa	Character
-aaa	Character
-ccc	Character
-ddd	Character
-aaa	Character
-NULL	Character
-eee	Character
-NULL	Integer
 1	Integer
+11	Integer
 3	Integer
 5	Integer
 6	Integer
 7	Integer
 9	Integer
-11	Integer
+NULL	Character
+NULL	Character
+NULL	Integer
+aaa	Character
+aaa	Character
+ccc	Character
+ddd	Character
+aaa	Character
+eee	Character
 SELECT t1_char, 'Character' AS Table1 FROM t1 UNION ALL SELECT t2_int, 'Integer' AS Table2 FROM t2 ORDER BY 1, 2;
 t1_char	Table1
 NULL	Character
@@ -289,9 +289,9 @@ aaa	5
 ccc	3
 ccc	3
 ddd	4
-eee	9
 eee	7
 eee	1
+eee	9
 jjj	5
 lll	7
 nnn	11
@@ -364,8 +364,8 @@ SELECT t1_char, 'Character' AS Table1 FROM t1 INTERSECT SELECT t2_int, 'Integer'
 t1_char	Table1
 SELECT t1_char, t1_int FROM t1 INTERSECT SELECT t2_char, t2_int FROM t2 ORDER BY 1;
 t1_char	t1_int
-NULL	6
 NULL	NULL
+NULL	6
 ccc	3
 SELECT t1_int FROM t1 INTERSECT SELECT t3_int FROM t3 ORDER BY t1_int;
 t1_int
@@ -439,9 +439,9 @@ ddd	Character
 eee	Character
 SELECT t1_char, t1_int FROM t1 EXCEPT SELECT t2_char, t2_int FROM t2 ORDER BY 1;
 t1_char	t1_int
-aaa	1
 aaa	2
 aaa	5
+aaa	1
 ddd	4
 eee	7
 SELECT t1_int FROM t1 EXCEPT SELECT t3_int FROM t3 ORDER BY t1_int;
