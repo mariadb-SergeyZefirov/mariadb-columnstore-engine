@@ -49,6 +49,7 @@ SELECT t1_int FROM t1 UNION SELECT t2_int FROM t2 ORDER BY t1_int;
 SELECT t1_char FROM t1 UNION SELECT t2_char FROM t2 ORDER BY t1_char;
 SELECT t1_int, 'Integer' AS Table1 FROM t1 WHERE t1_int > 1 UNION SELECT t2_int, 'Integer' AS Table2 FROM t2 ORDER BY t1_int;
 SELECT t1_int, 'Integer' AS Table1 FROM t1 UNION SELECT t2_char, 'Character' AS Table2 FROM t2 WHERE t2_int > 1 ORDER by 1,2;
+--sorted_result
 SELECT t1_int, 'Integer' AS Table1 FROM t1 UNION SELECT t2_char, 'Character' AS Table2 FROM t2 ORDER by 1 DESC;
 --sorted_result
 SELECT t1_char, 'Character' AS Table1 FROM t1 UNION SELECT t2_int, 'Integer' AS Table2 FROM t2 ORDER BY 2 ASC;
